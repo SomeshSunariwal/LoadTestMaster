@@ -1,0 +1,55 @@
+.json-tree {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 6px;
+  max-height: 380px;
+  overflow: auto;
+  min-width: 0;
+}
+.json-node-row {
+  display: grid;
+  grid-template-columns: 22px minmax(62px, 0.8fr) 82px minmax(80px, 1fr) 24px;
+  gap: 5px;
+  align-items: center;
+  margin-bottom: 5px;
+  min-width: 280px;
+}
+.json-node-row input,
+.json-node-row select {
+  padding: 6px 7px;
+  font-size: 10px;
+}
+.json-node-row .select-control select {
+  padding-right: 23px;
+}
+.json-node-row .select-control > svg {
+  right: 6px;
+  width: 12px;
+  height: 12px;
+}
+.json-node-row .icon-button {
+  width: 22px;
+  height: 26px;
+  font-size: 12px;
+}
+.json-index {
+  font-size: 10px;
+  padding-left: 4px;
+}
+.json-value {
+  min-width: 0;
+  font-size: 10px;
+}
+.json-children {
+  margin-left: 10px;
+  border-left: 1px solid var(--border);
+  padding-left: 6px;
+}
+.json-children > .button {
+  font-size: 10px;
+  padding: 5px;
+}
+.json-node-spacer {
+  width: 22px;
+}

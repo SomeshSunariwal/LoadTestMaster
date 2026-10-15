@@ -61,6 +61,10 @@ The Local environment defaults to `http://localhost:3000`; start your own server
 - Drag History column dividers to adjust widths. Focus a divider and use the left/right arrow keys for 10 px changes, or Shift + arrow for 30 px. Column proportions persist on this device.
 - Dashboard headings and run tabs stay fixed while results scroll. Collections, APIs, configuration, environment lists, variable rows, and History each scroll internally with their headers and actions kept visible.
 - The API table shows **Global** for inherited collection settings and **Own API** for per-API overrides.
+- Type `{{` in a text field to suggest enabled variables from the collection's environment (or the environment being edited). Type to filter, use arrow keys and Enter/Tab to insert, or click a suggestion. Escape dismisses the list. Variable values are not displayed in suggestions.
+- Recognized `{{variableName}}` references are highlighted orange in fields and JSON editors. Password fields remain masked.
+- Request body lives in the API editor's right column. JSON has synchronized **Text** and editable **Tree** views, including nested objects/arrays, key renaming, value/type editing, adding/removing entries, and collapsing branches. Invalid JSON stays editable in Text view until corrected. Commit a renamed key with Enter or by leaving the field.
+- Response assertions remain available under **Advanced options → Response assertions**; the separate Assertions tab has been removed.
 - Local workspace persistence and retained run history.
 - System CPU, memory, platform, uptime, and in-flight request monitoring.
 - Theme persistence, workspace JSON backup/restore, CSV reports, keyboard-accessible dialogs, and layouts that adapt to smaller windows.

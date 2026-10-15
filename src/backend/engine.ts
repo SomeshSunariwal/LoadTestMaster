@@ -1,11 +1,13 @@
 import type {
   ApiDefinition,
+  ApiRequestLog,
   Collection,
   Environment,
   LoadConfig,
   RunSnapshot,
 } from '../shared/schema';
 import { prepareRequest } from './variables';
+import { RequestLogs, logHeaders, logPreviewLimit } from './requestLogs';
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 const bounds = [25, 50, 100, 200, 300, 500, 1000, 2000, 5000, 10000, 30000, Infinity];
@@ -49,6 +51,10 @@ interface ActiveRun {
 }
 
 export class LoadEngine {
+  private logs = new RequestLogs();
+  getLogs(runId: string, apiId: string) {
+    return this.logs.get(runId, apiId);
+  }
   private active = new Map<string, ActiveRun>();
   private archived: RunSnapshot[] = [];
   private inFlight = 0;
@@ -71,11 +77,13 @@ export class LoadEngine {
   setRetention(count: number) {
     this.retention = count;
     this.archived = this.archived.slice(0, count);
+    this.logs.retain([...this.active.keys(), ...this.archived.map((r) => r.id)]);
   }
 
   remove(id: string) {
     if (this.active.has(id)) throw new Error('Stop the run before deleting it.');
     this.archived = this.archived.filter((r) => r.id !== id);
+    this.logs.retain([...this.active.keys(), ...this.archived.map((r) => r.id)]);
   }
 
   start(collection: Collection, environment: Environment, all: boolean) {
@@ -229,6 +237,21 @@ export class LoadEngine {
     this.inFlight++;
     const timeout = setTimeout(() => controller.abort(), c.timeout * 1000);
     const start = performance.now();
+    const log: ApiRequestLog = {
+      id: crypto.randomUUID(),
+      apiId: api.id,
+      requestAt: new Date().toISOString(),
+      request: {
+        method: api.method,
+        url: prepared.url,
+        headers: logHeaders(prepared.options.headers),
+        body: (prepared.options.body ?? '').slice(0, logPreviewLimit).toString(),
+      },
+    };
+    this.logs.add(run.snapshot.id, log);
+    let responseStatus: number | undefined;
+    let responseHeaders: Record<string, string> = {};
+    let responsePreview = '';
     let failed = false,
       size = 0,
       error = '';
@@ -238,6 +261,8 @@ export class LoadEngine {
         signal: controller.signal,
       });
       const reader = response.body?.getReader();
+      responseStatus = response.status;
+      responseHeaders = logHeaders(response.headers);
       // Drain the full response for accurate timing and byte counts; retain only assertion text.
       let text = '';
       const decoder = new TextDecoder();
@@ -246,8 +271,10 @@ export class LoadEngine {
           const chunk = await reader.read();
           if (chunk.done) break;
           size += chunk.value.byteLength;
-          if (api.responseContains && text.length < 1048576)
-            text += decoder.decode(chunk.value, { stream: true });
+          const decoded = decoder.decode(chunk.value, { stream: true });
+          if (responsePreview.length < logPreviewLimit)
+            responsePreview += decoded.slice(0, logPreviewLimit - responsePreview.length);
+          if (api.responseContains && text.length < 1048576) text += decoded;
         }
         text += decoder.decode();
       }
@@ -268,6 +295,15 @@ export class LoadEngine {
       clearTimeout(timeout);
       run.controllers.delete(controller);
       this.inFlight--;
+      log.responseAt = new Date().toISOString();
+      log.response = {
+        status: responseStatus,
+        headers: responseHeaders,
+        body: responsePreview,
+        bytes: size,
+        durationMs: performance.now() - start,
+        error,
+      };
     }
     if (!this.active.has(run.snapshot.id)) return;
     const ms = performance.now() - start,
@@ -347,6 +383,7 @@ export class LoadEngine {
     for (const c of r.controllers) c.abort();
     this.archived.unshift(structuredClone(r.snapshot));
     this.archived = this.archived.slice(0, this.retention);
+    this.logs.retain([...this.active.keys(), ...this.archived.map((run) => run.id)]);
     this.onComplete(r.snapshot);
   }
 

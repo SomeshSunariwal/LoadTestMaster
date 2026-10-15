@@ -1,0 +1,57 @@
+.json-code-editor,
+.json-code-editor > div:first-child {
+  height: 100%;
+  min-width: 0;
+}
+.json-code-editor .cm-editor {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 6px;
+}
+.json-code-editor .cm-editor.cm-focused {
+  outline: none;
+}
+.json-code-editor .cm-scroller {
+  overflow: auto;
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.json-code-editor .cm-content {
+  padding: 10px 0 42px;
+}
+.json-code-editor .cm-placeholder {
+  color: var(--muted);
+  opacity: 0.5;
+  font-style: italic;
+  pointer-events: none;
+  user-select: none;
+}
+.json-code-editor .cm-gutters {
+  background: var(--bg);
+  color: var(--muted);
+  border: 0;
+}
+.json-code-editor .json-environment-token,
+.json-code-editor .json-environment-token * {
+  color: #f4a340;
+}
+.json-code-editor .cm-line:has(.cm-lintRange-error),
+.json-code-editor .cm-line:has(.cm-lintPoint-error) {
+  background: #f56b7915;
+}
+.json-validation-message {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  max-width: calc(100% - 116px);
+  font-size: 10px;
+  color: #f56b79;
+  background: var(--bg);
+  padding: 4px 6px;
+  border-radius: 4px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}

@@ -1,3 +1,4 @@
+import { VariableInput } from './VariableInput';
 import './PairEditor.css';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import type { Pair } from '../shared/schema';
@@ -8,11 +9,13 @@ export function PairEditor({
   onChange,
   secret = false,
   scrollable = false,
+  environmentId,
 }: {
   items: Pair[];
   onChange: (items: Pair[]) => void;
   secret?: boolean;
   scrollable?: boolean;
+  environmentId?: string;
 }) {
   const change = (id: string, key: keyof Pair, value: string | boolean) =>
     onChange(items.map((p) => (p.id === id ? { ...p, [key]: value } : p)));
@@ -33,18 +36,20 @@ export function PairEditor({
               checked={item.enabled}
               onChange={(e) => change(item.id, 'enabled', e.target.checked)}
             />
-            <input
+            <VariableInput
+              environmentId={environmentId}
               aria-label={`Name ${i + 1}`}
               placeholder="variableName"
               value={item.key}
-              onChange={(e) => change(item.id, 'key', e.target.value)}
+              onValueChange={(value) => change(item.id, 'key', value)}
             />
-            <input
+            <VariableInput
+              environmentId={environmentId}
               aria-label={`Value ${i + 1}`}
               type={secret && /password|secret|token/i.test(item.key) ? 'password' : 'text'}
               placeholder="Value or {{variable}}"
               value={item.value}
-              onChange={(e) => change(item.id, 'value', e.target.value)}
+              onValueChange={(value) => change(item.id, 'value', value)}
             />
             <IconButton
               label={`Delete ${item.key || 'row'}`}
@@ -54,11 +59,11 @@ export function PairEditor({
             </IconButton>
           </div>
         ))}
+        <Button variant="ghost" onClick={() => onChange([...items, pair()])}>
+          <FiPlus />
+          Add item
+        </Button>
       </div>
-      <Button variant="ghost" onClick={() => onChange([...items, pair()])}>
-        <FiPlus />
-        Add item
-      </Button>
     </div>
   );
 }

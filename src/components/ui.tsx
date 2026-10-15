@@ -145,12 +145,14 @@ export function Modal({
   onClose,
   children,
   wide = false,
+  className = '',
 }: {
   title: string;
   subtitle?: string;
   onClose: () => void;
   children: ReactNode;
   wide?: boolean;
+  className?: string;
 }) {
   const { state } = useApp();
   return (
@@ -163,7 +165,7 @@ export function Modal({
       <Dialog.Portal>
         <div className="app-shell modal-theme" data-theme={state?.workspace.theme || 'dark'}>
           <Dialog.Overlay className="modal-backdrop" />
-          <Dialog.Content className={`modal ${wide ? 'wide' : ''}`}>
+          <Dialog.Content className={`modal ${wide ? 'wide' : ''} ${className}`}>
             <div className="modal-heading">
               <div>
                 <Dialog.Title asChild>

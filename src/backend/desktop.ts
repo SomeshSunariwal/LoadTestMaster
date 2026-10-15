@@ -16,6 +16,7 @@ const rpc = BrowserView.defineRPC<AppRPC>({
         return service.state();
       },
       save: (workspace) => service.save(workspace),
+      logs: (input) => service.logs(input),
       start: (input) => service.start(input),
       control: (input) => service.control(input),
       deleteRun: (input) => service.deleteRun(input),

@@ -5,6 +5,15 @@
 .collection-items {
   padding: 7px;
 }
+.collection-list .collection-search {
+  margin: 10px 12px 3px;
+  flex-shrink: 0;
+}
+.collection-search-empty {
+  padding: 12px 10px;
+  color: var(--muted);
+  font-size: 11px;
+}
 .collection-item {
   display: flex;
   align-items: center;

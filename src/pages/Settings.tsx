@@ -1,3 +1,4 @@
+import { VariableTextarea } from '../components/VariableInput';
 import './Settings.css';
 import { FiDownload, FiUpload, FiMoon, FiSun, FiSave, FiInfo, FiZap } from 'react-icons/fi';
 import { useState } from 'react';
@@ -128,10 +129,10 @@ export function Settings() {
           onClose={() => setImporting(false)}
         >
           <Field label="Workspace JSON">
-            <textarea
+            <VariableTextarea
               className="code-editor"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onValueChange={(value) => setInput(value)}
               placeholder={'{ "collections": […], "environments": […] }'}
             />
           </Field>

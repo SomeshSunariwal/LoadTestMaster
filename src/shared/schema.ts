@@ -38,7 +38,7 @@ export const apiSchema = z.object({
   token: z.string(),
   username: z.string(),
   password: z.string(),
-  bodyType: z.enum(['none', 'json', 'raw', 'form', 'graphql']),
+  bodyType: z.enum(['none', 'json', 'xml', 'raw', 'form', 'multipart', 'graphql']),
   body: z.string().max(1000000),
   expectedStatus: z.number().int().min(0).max(599),
   responseContains: z.string(),
@@ -94,6 +94,22 @@ export interface EndpointStats {
   p95: number;
   p99: number;
   lastError: string;
+}
+
+export interface ApiRequestLog {
+  id: string;
+  apiId: string;
+  requestAt: string;
+  request: { method: string; url: string; headers: Record<string, string>; body: string };
+  responseAt?: string;
+  response?: {
+    status?: number;
+    headers: Record<string, string>;
+    body: string;
+    bytes: number;
+    durationMs: number;
+    error: string;
+  };
 }
 
 export interface Point {

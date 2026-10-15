@@ -8,6 +8,7 @@ const service = await createService(process.env.LOADMASTER_DATA_DIR || '.data');
 
 const methods = {
   state: service.state,
+  logs: service.logs,
   save: service.save,
   start: service.start,
   control: service.control,

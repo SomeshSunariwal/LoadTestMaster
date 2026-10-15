@@ -40,12 +40,10 @@
   flex: 1;
   min-height: 0;
 }
-.scrollable-pair-editor > .pair-heading,
-.scrollable-pair-editor > .button {
+.scrollable-pair-editor > .pair-heading {
   flex-shrink: 0;
 }
-.scrollable-pair-editor > .button {
-  align-self: flex-start;
+.scrollable-pair-editor .pair-rows > .button {
   margin-top: 2px;
 }
 .scrollable-pair-editor .pair-rows {

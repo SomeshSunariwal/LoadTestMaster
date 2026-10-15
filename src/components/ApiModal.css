@@ -1,43 +1,32 @@
 .api-modal-grid {
   display: grid;
-  grid-template-columns: 1.45fr 1fr;
-  gap: 14px;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 10px;
 }
 .api-main,
 .api-side {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 .inset-section {
   border: 1px solid var(--border);
   border-radius: 7px;
   background: var(--input);
-  padding: 15px;
+  padding: 12px;
 }
 .inset-section h3 {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  margin-bottom: 16px;
-}
-.step {
-  height: 22px;
-  width: 22px;
-  background: #3579f6;
-  color: #fff;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  box-shadow: 0 2px 6px #3579f633;
+  margin-bottom: 10px;
 }
 .api-details-grid {
   display: grid;
   grid-template-columns: 120px 1fr;
   gap: 13px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 .inset-section input,
 .inset-section select,
@@ -49,9 +38,9 @@
   padding: 9px 11px;
 }
 .compact {
-  margin-bottom: 15px;
+  margin-bottom: 8px;
   gap: 0;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 .api-modal-grid .pair-row {
   grid-template-columns: 18px minmax(60px, 0.8fr) minmax(70px, 1.2fr) 26px;
@@ -65,52 +54,110 @@
   padding: 9px 0;
   font-size: 9px;
 }
-.body-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  gap: 8px;
+.api-main .config-section {
+  padding-top: 12px;
 }
-.segmented {
-  display: flex;
-  gap: 2px;
-  flex-wrap: wrap;
+.api-editor-modal {
+  padding: 18px;
 }
-.segmented > button {
-  border: 1px solid transparent;
-  background: none;
-  border-radius: 4px;
-  font-size: 9px;
-  padding: 6px;
+.modal.api-editor-modal {
+  width: 1280px;
+  max-width: calc(100vw - 48px);
+}
+.api-editor-modal .modal-heading {
+  margin-bottom: 14px;
+}
+.api-editor-modal .modal-footer {
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.api-modal-grid .stack {
+  padding-top: 0;
+  gap: 10px;
+}
+.api-modal-grid .body-empty {
+  height: 56px;
+}
+.api-assertions {
+  margin-top: 10px;
+  font-size: 11px;
+}
+.api-assertions summary {
+  cursor: pointer;
   color: var(--muted);
 }
-.segmented > button.active {
-  color: var(--blue);
-  background: #4d8dff15;
-  border-color: #4d8dff33;
-}
-.body-toolbar .button {
-  font-size: 9px;
-  padding: 4px;
-}
-.body-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: var(--faint);
-  font-size: 10px;
-  height: 88px;
-  background: var(--bg);
-  border: 1px dashed var(--border);
-  border-radius: 6px;
-}
-.api-side .config-section {
-  padding-top: 12px;
+.api-assertions[open] {
+  display: grid;
+  gap: 10px;
 }
 @media (max-width: 800px) {
   .api-modal-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.api-editor-modal {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.api-editor-modal .modal-heading,
+.api-editor-modal .modal-footer {
+  flex-shrink: 0;
+}
+.api-modal-grid {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+.api-main {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.api-side {
+  contain: size;
+  min-width: 0;
+  min-height: 0;
+}
+.api-side .request-body-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.api-side .body-toolbar,
+.api-side .request-body-section h3 {
+  flex-shrink: 0;
+}
+.api-side .body-editor-box {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+.api-side .body-empty {
+  height: 100%;
+}
+@media (max-width: 800px) {
+  .api-editor-modal {
+    height: auto;
+  }
+  .modal.api-editor-modal {
+    max-width: calc(100vw - 24px);
+  }
+  .api-modal-grid {
+    overflow-y: auto;
+  }
+  .api-main {
+    overflow: visible;
+    padding-right: 0;
+  }
+  .api-side {
+    contain: none;
+    min-height: 520px;
+  }
+}
+
+.api-main > .inset-section {
+  flex-shrink: 0;
 }

@@ -1,0 +1,153 @@
+.variable-field {
+  position: relative;
+  --variable-padding: 10px 12px;
+  --variable-font-size: inherit;
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+.variable-highlight {
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
+  overflow: hidden;
+  color: var(--text);
+}
+.variable-field > input,
+.variable-field > textarea {
+  display: block;
+}
+.search .variable-highlight {
+  border: 0;
+}
+.variable-highlight-text {
+  display: block;
+  padding: var(--variable-padding);
+  font-size: var(--variable-font-size);
+  font-family: inherit;
+  line-height: inherit;
+  white-space: pre;
+}
+.variable-field-highlighted > input,
+.variable-field-highlighted > textarea {
+  color: transparent;
+  caret-color: var(--text);
+}
+.variable-field-highlighted > input::selection,
+.variable-field-highlighted > textarea::selection {
+  color: transparent;
+  background: #4d8dff55;
+}
+.variable-field-code {
+  --variable-padding: 14px;
+}
+.variable-field-multiline > textarea {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.8;
+  padding: var(--variable-padding);
+}
+.environment-token,
+.variable-field-secret > input {
+  color: #f4a340;
+}
+.field .variable-field {
+  --variable-font-size: 11px;
+}
+.pair-row .variable-field {
+  --variable-padding: 10px 11px;
+  --variable-font-size: 11px;
+}
+.search .variable-field {
+  --variable-padding: 10px 0;
+  --variable-font-size: 11px;
+}
+.json-node-row .variable-field {
+  --variable-padding: 6px 7px;
+  --variable-font-size: 10px;
+}
+.variable-field-multiline > textarea {
+  scrollbar-gutter: stable;
+}
+.variable-field-multiline .variable-highlight-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.8;
+  padding-right: calc(12px + 5px);
+}
+.variable-field-code .variable-highlight-text {
+  padding-right: 19px;
+}
+.variable-field-multiline[data-wrap='off'] .variable-highlight-text {
+  white-space: pre;
+  overflow-wrap: normal;
+}
+@media (max-width: 800px) {
+  .pair-row .variable-field {
+    --variable-padding: 9px 7px;
+  }
+}
+.api-modal-grid .pair-row .variable-field {
+  --variable-padding: 8px;
+  --variable-font-size: 10px;
+}
+.variable-suggestions {
+  z-index: 80;
+  width: max(240px, var(--radix-popover-trigger-width));
+  max-width: min(420px, calc(100vw - 24px));
+  border: 1px solid #484848;
+  border-radius: 7px;
+  background: #303030;
+  color: #f3f3f5;
+  box-shadow: 0 8px 24px #0004;
+  font:
+    11px 'Segoe UI',
+    sans-serif;
+  overflow: hidden;
+}
+.variable-suggestions[data-theme='light'] {
+  background: #fff;
+  color: #202534;
+  border-color: #dce1ea;
+}
+.variable-suggestions-heading {
+  padding: 8px 10px;
+  font-size: 10px;
+  opacity: 0.65;
+  border-bottom: 1px solid #8883;
+}
+.variable-options {
+  max-height: min(220px, var(--radix-popover-content-available-height));
+  overflow: auto;
+}
+.variable-option {
+  padding: 8px 10px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.variable-option > span {
+  color: #f4a340;
+}
+.app-shell[data-theme='light'] .environment-token,
+.app-shell[data-theme='light'] .variable-field-secret > input,
+.variable-suggestions[data-theme='light'] .variable-option > span {
+  color: #b76b12;
+}
+.variable-option[aria-selected='true'],
+.variable-option:hover {
+  background: #4d8dff25;
+  color: #6b9fff;
+}
+.variable-suggestions[data-theme='light'] .variable-option[aria-selected='true'],
+.variable-suggestions[data-theme='light'] .variable-option:hover {
+  color: #2768e9;
+}
+.variable-no-match {
+  padding: 10px;
+  opacity: 0.65;
+  margin: 0;
+}

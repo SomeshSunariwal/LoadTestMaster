@@ -1,0 +1,61 @@
+.api-logs-modal {
+  display: flex;
+  flex-direction: column;
+  max-height: min(720px, 85vh);
+  overflow: hidden;
+}
+.api-logs-modal .modal-heading p {
+  overflow-wrap: anywhere;
+}
+.api-logs-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+.api-logs-list {
+  min-height: 120px;
+  overflow: auto;
+  min-width: 0;
+  background: #000;
+  color: #fff;
+  font-family: Consolas, 'Courier New', monospace;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 10px 12px;
+  color-scheme: dark;
+}
+.api-log-pair {
+  border-bottom: 1px solid #242424;
+  padding: 6px 0;
+}
+.api-log-pair summary {
+  cursor: pointer;
+  padding: 5px 0;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.api-log-pair pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  line-height: 1.6;
+  background: #000;
+  color: #fff;
+  padding: 10px;
+  border-radius: 4px;
+}
+.api-logs-list .api-log-request,
+.api-logs-list .api-log-response,
+.api-logs-list .text-red,
+.api-logs-list .muted {
+  color: #fff;
+}
+.api-logs-note {
+  font-size: 10px;
+  color: var(--muted);
+  padding-top: 10px;
+  line-height: 1.6;
+}

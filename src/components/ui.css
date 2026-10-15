@@ -286,7 +286,8 @@
   margin-bottom: 16px;
   color: var(--muted);
 }
-.search > input {
+.search > input,
+.search > .variable-field > input {
   background: none;
   border: 0;
   box-shadow: none;

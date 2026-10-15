@@ -241,10 +241,6 @@ export function Dashboard() {
                     <FiGlobe />
                     HTTP
                   </Badge>
-                  <Badge tone="purple">
-                    <FiLayers />
-                    {run.environment}
-                  </Badge>
                   <Badge tone="neutral">
                     <FiClock />
                     {run.duration}s duration
@@ -252,6 +248,10 @@ export function Dashboard() {
                   <Badge tone="neutral">
                     <FiUsers />
                     {number(run.users)} users
+                  </Badge>
+                  <Badge tone="purple">
+                    <FiLayers />
+                    Environment: {run.environment}
                   </Badge>
                 </div>
               </div>
