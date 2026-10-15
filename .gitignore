@@ -1,0 +1,8 @@
+node_modules/
+.hutch/
+dist/
+build/
+artifacts/
+.data/
+coverage/
+*.log
