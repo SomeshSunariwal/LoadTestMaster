@@ -304,11 +304,6 @@ export function Dashboard() {
             </div>
             <RunBoard run={run} />
             <div className="dashboard-foot">
-              <span>
-                <span className="dot green" />
-                Updated every second
-              </span>
-              <span>Percentiles use 5 ms buckets · Chart shows the latest 600 samples</span>
             </div>
           </div>
         </>
