@@ -1,8 +1,9 @@
-import './ApiLogsModal.css';
-import { useEffect, useState } from 'react';
+import './css/ApiLogsModal.css';
+import { useEffect, useRef, useState } from 'react';
+import { FiActivity } from 'react-icons/fi';
 import { client } from '../apis/client';
 import type { ApiRequestLog, EndpointStats } from '../shared/schema';
-import { Modal } from './ui';
+import { Button, Modal } from './ui';
 
 export function ApiLogsModal({
   runId,
@@ -16,31 +17,54 @@ export function ApiLogsModal({
   const [logs, setLogs] = useState<ApiRequestLog[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [live, setLive] = useState(true);
+  const listRef = useRef<HTMLDivElement>(null);
+  const liveRef = useRef(true);
+
+  const resumeLive = () => {
+    liveRef.current = true;
+    setLive(true);
+  };
+
+  const pauseLive = () => {
+    if (!liveRef.current) return;
+    liveRef.current = false;
+    setLive(false);
+  };
+
   useEffect(() => {
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout>;
     const refresh = async () => {
+      if (!liveRef.current) return;
       try {
         const result = await client.logs(runId, endpoint.id);
-        if (!cancelled) {
+        if (!cancelled && liveRef.current) {
           setLogs(result);
           setError('');
         }
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Unable to load logs.');
+        if (!cancelled && liveRef.current)
+          setError(e instanceof Error ? e.message : 'Unable to load logs.');
       } finally {
         if (!cancelled) {
           setLoading(false);
-          timer = setTimeout(refresh, 1000);
+          if (liveRef.current) timer = setTimeout(refresh, 1000);
         }
       }
     };
+    if (!live) return () => { cancelled = true; };
     void refresh();
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [runId, endpoint.id]);
+  }, [runId, endpoint.id, live]);
+
+  useEffect(() => {
+    if (!live || !listRef.current) return;
+    listRef.current.scrollTop = listRef.current.scrollHeight;
+  }, [logs, live]);
 
   return (
     <Modal
@@ -51,15 +75,37 @@ export function ApiLogsModal({
       className="api-logs-modal"
     >
       <div className="api-logs-status" role="status">
-        <span>Refreshes every second · Newest requests first</span>
+        <span>{live ? 'Live · Refreshes every second · Newest requests last' : 'Paused · Scroll position is held'}</span>
         <span>{logs.length} requests</span>
+        {!live && (
+          <Button className="api-logs-live-button" onClick={resumeLive}>
+            <FiActivity />
+            Go to live logs
+          </Button>
+        )}
       </div>
       {error && (
         <p role="alert" className="text-red">
           {error}
         </p>
       )}
-      <div className="api-logs-list" aria-label="API request and response logs">
+      <div
+        ref={listRef}
+        className="api-logs-list"
+        aria-label="API request and response logs"
+        tabIndex={0}
+        onClick={pauseLive}
+        onWheel={pauseLive}
+        onTouchMove={pauseLive}
+        onKeyDown={(event) => {
+          if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(event.key))
+            pauseLive();
+        }}
+        onPointerDown={(event) => {
+          const bounds = event.currentTarget.getBoundingClientRect();
+          if (event.clientX >= bounds.right - 14) pauseLive();
+        }}
+      >
         {!logs.length && (
           <p className="muted">
             {loading

@@ -1,5 +1,5 @@
 @theme {
-  --font-sans: 'Segoe UI', 'Inter', Arial, sans-serif;
+  --font-sans: 'SF Pro Display', 'SF Pro Text', 'SF UI Display', 'Segoe UI Variable', 'Segoe UI', Arial, sans-serif;
 }
 * {
   box-sizing: border-box;

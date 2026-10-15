@@ -1,4 +1,4 @@
-import './VariableInput.css';
+import './css/VariableInput.css';
 import {
   useId,
   useState,

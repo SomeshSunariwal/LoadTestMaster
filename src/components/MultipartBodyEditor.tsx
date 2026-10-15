@@ -4,7 +4,7 @@ import { parseMultipartFields, type MultipartField } from '../shared/multipart';
 import { pair } from '../shared/defaults';
 import { VariableInput } from './VariableInput';
 import { Button, IconButton } from './ui';
-import './MultipartBodyEditor.css';
+import './css/MultipartBodyEditor.css';
 
 export function MultipartBodyEditor({
   value,

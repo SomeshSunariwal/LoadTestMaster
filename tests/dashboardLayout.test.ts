@@ -17,16 +17,18 @@ test('default desktop board preserves six metrics and the existing two-column re
   expect(layout.find((item) => item.i === 'breakdown')).toMatchObject({ x: 0, y: 10, w: 20 });
   expect(layout.find((item) => item.i === 'distribution')).toMatchObject({ x: 20, y: 10, w: 16 });
 });
-test('only graphs are resizable and saved layouts stay within the responsive grid', () => {
+test('graphs and request breakdown can be resized while saved layouts stay within the responsive grid', () => {
   for (const cols of [12, 18, 36]) {
     const layout = constrainDashboardLayout(defaultDashboardLayout(cols), cols);
     for (const item of layout) {
       expect(item.x + item.w).toBeLessThanOrEqual(cols);
-      expect(item.isResizable).toBe(graphIds.includes(item.i));
+      expect(item.isResizable).toBe(graphIds.includes(item.i) || item.i === 'breakdown');
       if ((metricIds as readonly string[]).includes(item.i))
         expect({ w: item.w, h: item.h }).toEqual({ w: 6, h: 3 });
     }
   }
+  expect(constrainDashboardLayout(defaultDashboardLayout(36), 36).find((item) => item.i === 'breakdown'))
+    .toMatchObject({ minH: 5, maxH: 24, isResizable: true });
   const duplicated = defaultDashboardLayout(36);
   duplicated[1] = duplicated[0]!;
   expect(dashboardLayoutsSchema.safeParse({ '36': duplicated }).success).toBe(false);

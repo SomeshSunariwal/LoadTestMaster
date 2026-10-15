@@ -1,4 +1,4 @@
-import './ui.css';
+import './css/ui.css';
 import type {
   ButtonHTMLAttributes,
   InputHTMLAttributes,
@@ -6,6 +6,7 @@ import type {
   ReactNode,
 } from 'react';
 import { FiCheck, FiX, FiInfo, FiChevronDown } from 'react-icons/fi';
+import { GoQuestion } from 'react-icons/go';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useApp } from '../hooks/useApp';
 export function Button({
@@ -36,15 +37,20 @@ export function IconButton({
 export function Field({
   label,
   hint,
+  tooltip,
   children,
 }: {
   label: string;
   hint?: string;
+  tooltip?: string;
   children: ReactNode;
 }) {
   return (
     <label className="field">
-      <span>{label}</span>
+      <span className="field-label-row">
+        <span>{label}</span>
+        {tooltip && <Tooltip text={tooltip} />}
+      </span>
       {children}
       {hint && <small>{hint}</small>}
     </label>
@@ -58,10 +64,30 @@ export function Select({ children, ...props }: SelectHTMLAttributes<HTMLSelectEl
     </span>
   );
 }
+
+function Tooltip({ text }: { text: string }) {
+  return (
+    <span
+      className="field-tooltip-trigger"
+      tabIndex={0}
+      role="img"
+      aria-label={text}
+      onMouseDown={(event) => event.preventDefault()}
+      onClick={(event) => event.preventDefault()}
+    >
+      <GoQuestion aria-hidden="true" />
+      <span className="field-tooltip" role="tooltip">
+        {text}
+      </span>
+    </span>
+  );
+}
 export function NumberField({
   label,
   value,
   onChange,
+  hint,
+  tooltip,
   min = 0,
   max = 1000000,
   step = 1,
@@ -69,19 +95,27 @@ export function NumberField({
   label: string;
   value: number;
   onChange: (value: number) => void;
+  hint?: string;
+  tooltip?: string;
   min?: number;
   max?: number;
   step?: number;
 }) {
   return (
-    <Field label={label}>
+    <Field label={label} hint={hint} tooltip={tooltip}>
       <input
         type="number"
         min={min}
         max={max}
         step={step}
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) => {
+          const parsed = e.currentTarget.valueAsNumber;
+          // Leave intermediate input such as the minus sign alone so users can
+          // type negative values without rerendering away the in-progress edit.
+          if (!Number.isFinite(parsed)) return;
+          onChange(parsed);
+        }}
       />
     </Field>
   );
@@ -90,10 +124,12 @@ export function Toggle({
   checked,
   onChange,
   label,
+  tooltip,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   label: string;
+  tooltip?: string;
 }) {
   return (
     <label className="toggle-label">
@@ -107,6 +143,7 @@ export function Toggle({
         <span />
       </span>
       <span>{label}</span>
+      {tooltip && <Tooltip text={tooltip} />}
     </label>
   );
 }

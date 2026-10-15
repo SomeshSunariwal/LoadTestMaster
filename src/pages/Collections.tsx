@@ -1,5 +1,5 @@
 import { VariableInput } from '../components/VariableInput';
-import './Collections.css';
+import './css/Collections.css';
 import { useState } from 'react';
 import {
   FiFolder,

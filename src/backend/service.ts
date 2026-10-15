@@ -1,8 +1,11 @@
 import os from 'node:os';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { z } from 'zod';
 import { workspaceSchema, type StartInput, type Workspace } from '../shared/schema';
 import { LoadEngine } from './engine';
 import { Storage } from './storage';
+import { runCsv } from '../shared/reports';
 
 export async function createService(directory: string) {
   const storage = new Storage(directory);
@@ -16,7 +19,7 @@ export async function createService(directory: string) {
         persistenceError = String(e);
         console.error('History persistence failed', e);
       });
-  });
+  }, join(directory, 'logs'));
 
   engine.restore(storage.history);
   engine.setRetention(storage.workspace.retention);
@@ -65,6 +68,33 @@ export async function createService(directory: string) {
     logs: (input: { runId: string; apiId: string }) => {
       const value = z.object({ runId: z.string(), apiId: z.string() }).parse(input);
       return engine.getLogs(value.runId, value.apiId);
+    },
+
+    logFiles: (input: { runId: string }) => {
+      const value = z.object({ runId: z.string() }).parse(input);
+      return engine.getLogFiles(value.runId);
+    },
+
+    readLogChunk: (input: { runId: string; name: string; offset: number }) => {
+      const value = z.object({ runId: z.string(), name: z.string(), offset: z.number() }).parse(input);
+      return engine.readLogChunk(value.runId, value.name, value.offset);
+    },
+
+    downloadLog: (input: { runId: string; name: string }) => {
+      const value = z.object({ runId: z.string(), name: z.string() }).parse(input);
+      return engine.downloadLog(value.runId, value.name, join(os.homedir(), 'Downloads'));
+    },
+
+    downloadCsv: async (input: { runId: string }) => {
+      const value = z.object({ runId: z.string() }).parse(input);
+      const run = engine.getRunSnapshot(value.runId);
+      if (['running', 'paused'].includes(run.status))
+        throw new Error('CSV export is available after the run finishes.');
+      const directory = join(os.homedir(), 'Downloads');
+      const destination = join(directory, `loadmaster-${run.id}.csv`);
+      await mkdir(directory, { recursive: true });
+      await writeFile(destination, runCsv(run), 'utf8');
+      return destination;
     },
 
     start: (input: StartInput) => {

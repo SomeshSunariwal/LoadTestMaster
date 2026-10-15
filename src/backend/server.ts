@@ -1,14 +1,19 @@
 import { createService } from './service';
+import { getDataDirectory } from './utils';
 
 const token = process.env.LOADMASTER_TOKEN;
 
 if (!token) throw new Error('LOADMASTER_TOKEN must be set by the development launcher.');
 
-const service = await createService(process.env.LOADMASTER_DATA_DIR || '.data');
+const service = await createService(getDataDirectory());
 
 const methods = {
   state: service.state,
   logs: service.logs,
+  logFiles: service.logFiles,
+  readLogChunk: service.readLogChunk,
+  downloadLog: service.downloadLog,
+  downloadCsv: service.downloadCsv,
   save: service.save,
   start: service.start,
   control: service.control,

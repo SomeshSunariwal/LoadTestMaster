@@ -38,9 +38,27 @@
   padding: 9px 11px;
 }
 .compact {
+  position: relative;
   margin-bottom: 8px;
   gap: 0;
   justify-content: flex-start;
+}
+.compact.indicator-ready > button.active {
+  border-bottom-color: transparent;
+}
+.config-tab-indicator {
+  position: absolute;
+  z-index: 2;
+  bottom: 0;
+  height: 2px;
+  background: var(--blue);
+  pointer-events: none;
+  transition: left 300ms ease, width 300ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .config-tab-indicator {
+    transition: none;
+  }
 }
 .api-modal-grid .pair-row {
   grid-template-columns: 18px minmax(60px, 0.8fr) minmax(70px, 1.2fr) 26px;

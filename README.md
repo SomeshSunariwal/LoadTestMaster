@@ -1,133 +1,150 @@
 # LoadMaster
 
-A Windows desktop API load tester built with **Electrobun 2.0.2**, **React 19.3.1**, **TypeScript 7**, **Vite 8**, **Tailwind CSS 4**, and **React Icons**. The supplied designs guide the dashboard, collections, environments, and API editor. Dark mode uses charcoal surfaces anchored at `#292929`; the navigation bar switches between dark and light themes.
+LoadMaster is a Windows desktop application for API load testing. It sends real HTTP requests from your machine, simulates concurrent users, and shows how your APIs perform under load through live response times, throughput, and error metrics.
 
-## Run the Windows app
+Organize endpoints into collections, reuse environment variables, configure traffic patterns, and review saved results without leaving the app. A browser development mode is also available.
 
-The portable app is in **`build/portable/LoadMaster`**. Open **`bin/launcher.exe`** inside that directory. Keep the entire `LoadMaster` directory together, including `bin` and `Resources`.
+## Tech stack
 
-For installation, extract **`artifacts/win-x64-LoadMaster-Setup.zip`** and run `LoadMaster-Setup.exe` from the extracted directory. Keep its hidden `.installer` directory in place. Windows requires Microsoft Edge WebView2 Runtime; it is normally included with Windows 11 and current Windows 10 installations. The local development build is unsigned.
+| Area                   | Technologies                                        | Purpose                                                                        |
+| ---------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Desktop application    | Electrobun 2                                        | Native window, application packaging, and typed RPC between the UI and backend |
+| Frontend               | React 19, TypeScript 7                              | Application screens, state, and shared types                                   |
+| Build tooling          | Vite 8                                              | Frontend development server and production builds                              |
+| Styling and UI         | Tailwind CSS 4, custom CSS, Radix UI, React Icons   | Themes, layouts, dialogs, and icons                                            |
+| Charts and layout      | Recharts, React Grid Layout, React Resizable Panels | Live charts, movable dashboard widgets, and resizable panels                   |
+| Request editor         | CodeMirror 6, React CodeMirror                      | JSON editing, validation, and variable completion                              |
+| Backend                | Bun, TypeScript, Fetch API                          | Load generation, metrics, and a local HTTP service for browser development     |
+| Validation and storage | Zod, local JSON and text files                      | Workspace validation, saved configuration, history, and request logs           |
+| Quality tools          | Bun Test, TypeScript, Prettier                      | Automated tests, type checking, and formatting                                 |
 
-## Develop
+Exact dependency versions and available commands are defined in [package.json](./package.json).
 
-Use Node.js **22.12 or newer** (Node 24 was used here). Bun is included as a project dependency; no global Bun installation is needed.
+## How to use it
 
-```sh
-npm ci
+### 1. Install and launch
+
+To run from source, use Windows with **Node.js 22.12 or newer** and **npm** installed. The project includes Bun and Electrobun as development dependencies.
+
+From the project folder, install dependencies and prepare the desktop tooling:
+
+```powershell
+npm install
 npm run prepare:desktop
-npm run dev
 ```
 
-Open `http://127.0.0.1:5173`. This starts both Vite and the real Bun backend. The development launcher generates a per-session token; Vite adds it when proxying requests to the loopback backend. Running `dev:web` by itself does not start the backend.
+Launch the desktop application:
 
-To build and launch a development desktop window:
-
-```sh
+```powershell
 npm run dev:desktop
 ```
 
-To package the Windows release:
+For browser development, start the frontend and local backend together:
 
-```sh
-npm run build
+```powershell
+npm run dev
 ```
 
-Electrobun uses the pinned Hutch release to project its SDK into `.hutch/devkit`. Run `prepare:desktop` before TypeScript or Vite on a fresh checkout. The SDK and runtimes download on first use. The packaging helper gives Windows PowerShell its standard module search path so ZIP packaging also works from a PowerShell 7 development terminal.
+Then open [http://127.0.0.1:5173](http://127.0.0.1:5173). The backend listens on `127.0.0.1:4319` by default. The development launcher supplies the token used by the frontend proxy to authenticate backend requests.
 
-## First test
+### 2. Configure an environment
 
-1. Open **Environments** and configure `baseUrl` for your API server.
-2. Select or create a collection in **Load Test Set**, add your endpoints, and choose the environment.
-3. Adjust users, ramp up, duration, iterations, delays, rate limits, or think time.
-4. Run the collection and watch live metrics. Pause freezes test time; already-started requests can finish. Stop cancels outstanding requests.
-5. View completed results in **History**, and download endpoint metrics with **Export CSV**.
+Open **Environments**, choose an existing environment or create one, and set `baseUrl` to your API server's address. Add other variables such as `authToken` or `productId` as needed.
 
-The Local environment defaults to `http://localhost:3000`; start your own server or replace this address. Staging and Production defaults use placeholder `example.com` addresses. The app does not start a demo API server. Previously generated local environments are migrated to normal editable Local environments, while custom URLs are preserved.
+Use variables in request fields with double braces:
+
+```text
+URL:          {{baseUrl}}/api/products/{{productId}}
+Bearer token: {{authToken}}
+```
+
+The Local environment starts with `http://localhost:3000`. Staging and Production contain placeholder `example.com` addresses. Start your own API server or replace these values; LoadMaster does not start a demo API server. The included collections are editable examples and require matching endpoints on your server.
+
+### 3. Create a collection and add APIs
+
+Open **Collections** (the Load Test Set screen), select or create a collection, and choose its environment. Add each API with a name, HTTP method, and URL.
+
+Configure query parameters, headers, authentication, and the request body as needed. For example, a JSON POST body can contain environment variables:
+
+```json
+{
+  "productId": "{{productId}}",
+  "quantity": 1
+}
+```
+
+For GraphQL, supply the request payload and headers expected by your server. Configure expected status codes and response-text checks under **Advanced options → Response assertions**. Save the API when finished.
+
+### 4. Configure the load
+
+Set the collection's load configuration, then save it. APIs inherit collection settings as **Global**. To apply individual overrides, turn off **Use collection configuration** in the API editor; the API table then shows **Own API**.
+
+| Setting                 | Meaning                                                                          |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| Virtual users           | Number of simulated users, up to 1,000                                           |
+| Ramp up                 | Time in seconds to bring users online                                            |
+| Duration                | Maximum test duration in seconds; finite iterations may finish earlier           |
+| Iterations per user     | Request batches per user for each API; `-1` repeats until the duration ends      |
+| Timeout                 | Maximum wait for an individual response, in seconds                              |
+| Request delay           | Fixed pause after each request batch, in milliseconds                            |
+| Parallel requests / API | Requests each user sends simultaneously in a batch, from 1 to 20                 |
+| Rate limit              | Maximum request-start rate in requests per second; `0` disables the cap          |
+| Random think time       | Additional random pause between batches, within the configured millisecond range |
+
+The Global rate limit is shared by APIs using collection settings within a run. APIs with their own settings have separate rate limits. The engine caps total in-flight requests at **200 across all runs**.
+
+### 5. Run and inspect results
+
+1. Choose **Run selected APIs** or **Run all APIs** in the collection.
+2. Follow the run's Dashboard tab for live metrics, charts, and per-endpoint results.
+3. Use **Pause**, **Resume**, or **Stop** to control the run. Pausing freezes test time while already-started requests can finish; stopping cancels outstanding requests.
+4. Open an endpoint's **Logs** control to inspect recent request and response details.
+5. Reopen completed or stopped results from **History**. Use **Export CSV** for endpoint metrics and the log download control for saved request logs after a run ends.
+
+Up to **four tests** can run concurrently. Closing a Dashboard tab keeps its test running and preserves saved results. The app starts on the Dashboard welcome page; historical results open when you select them.
+
+### 6. Save and restore your workspace
+
+Collections, environments, settings, and retained test history are stored locally in `%APPDATA%\LoadMaster`. Development and packaged versions use the same data folder.
+
+In **Settings**, use **Export workspace** to download a JSON backup or **Import workspace** to paste a backup and replace the current workspace. Backups include collections, environment variables, and settings. Test history and request log files are stored separately. History retention defaults to 30 runs and can be set from 1 to 100.
 
 ## Features
 
-- Collection creation, renaming, deletion, API selection, and search.
-- API creation and editing with GET, POST, PUT, PATCH, DELETE, HEAD, and OPTIONS.
-- Query parameters, headers, bearer/basic authentication, JSON, raw, URL-encoded form, and GraphQL payloads. For GraphQL, enter the server's expected request payload and content type in the body and headers.
-- Nested `{{environmentVariables}}` throughout URLs, parameters, headers, authentication, and bodies. Missing or circular references fail before a test starts.
-- Collection settings and per-API overrides; custom expected status and response-text assertions.
-- Live requests/sec, bytes/sec, errors, latency, approximate P95/P99, request breakdown, and histograms.
-- Up to four concurrent tests with separate dashboard tabs.
-- The app opens on the main Dashboard welcome page. Run tabs open only when you start a test or select results from **History**; saved history is never opened automatically.
-- Close dashboard tabs with their × control without stopping tests or deleting results. Closed tests are not listed on the dashboard; saved results remain available in **History**. Tab visibility lasts for the current app session.
-- Move all six metric cards, all three graphs, and the request breakdown with their move handles. Resize only the graphs from the lower-right corner. The default arrangement matches the original board; **Reset layout** restores it. Preferences persist on this device, with separate layouts for different window widths.
-- Resize the Collections, APIs, and Configuration columns using the two draggable dividers. Keyboard arrow keys also adjust divider widths.
-- Resize the Environments list and variables panel with their divider; widths persist on this device.
-- Drag History column dividers to adjust widths. Focus a divider and use the left/right arrow keys for 10 px changes, or Shift + arrow for 30 px. Column proportions persist on this device.
-- Dashboard headings and run tabs stay fixed while results scroll. Collections, APIs, configuration, environment lists, variable rows, and History each scroll internally with their headers and actions kept visible.
-- The API table shows **Global** for inherited collection settings and **Own API** for per-API overrides.
-- Type `{{` in a text field to suggest enabled variables from the collection's environment (or the environment being edited). Type to filter, use arrow keys and Enter/Tab to insert, or click a suggestion. Escape dismisses the list. Variable values are not displayed in suggestions.
-- Recognized `{{variableName}}` references are highlighted orange in fields and JSON editors. Password fields remain masked.
-- Request body lives in the API editor's right column. JSON has synchronized **Text** and editable **Tree** views, including nested objects/arrays, key renaming, value/type editing, adding/removing entries, and collapsing branches. Invalid JSON stays editable in Text view until corrected. Commit a renamed key with Enter or by leaving the field.
-- Response assertions remain available under **Advanced options → Response assertions**; the separate Assertions tab has been removed.
-- Local workspace persistence and retained run history.
-- System CPU, memory, platform, uptime, and in-flight request monitoring.
-- Theme persistence, workspace JSON backup/restore, CSV reports, keyboard-accessible dialogs, and layouts that adapt to smaller windows.
+- **API collections:** Create, rename, delete, and search collections; choose individual APIs or run the entire collection.
+- **HTTP request configuration:** GET, POST, PUT, PATCH, DELETE, HEAD, and OPTIONS; query parameters, custom headers, bearer/basic authentication, and redirect control.
+- **Request bodies:** JSON, XML, raw text, GraphQL payloads, and multipart forms with text fields and file uploads up to 512 KB per file, subject to the combined body-size limit.
+- **JSON editing:** Syntax highlighting, live validation, formatting, text wrapping, and synchronized Text and editable Tree views for nested objects and arrays.
+- **Reusable environments:** Nested `{{variable}}` references across URLs, parameters, headers, authentication, and bodies; autocomplete and highlighted references. Missing or circular references fail before a run starts.
+- **Flexible traffic:** Collection defaults, per-API overrides, virtual users, ramp up, duration, iterations, parallel requests, timeouts, rate limits, delays, and random think time.
+- **Response assertions:** Expected status codes and response-text checks to identify failed requests.
+- **Live results:** Requests per second, bytes per second, success/error rates, average latency, approximate P95/P99 latency, response-time distributions, and endpoint breakdowns. Percentiles use 5 ms histogram buckets.
+- **Concurrent testing:** Separate Dashboard tabs for up to four active tests, with pause, resume, and stop controls.
+- **Request diagnostics:** Live request/response previews with sensitive headers masked. The viewer shows up to 100 requests per API within a 200-request run buffer and limits body previews to 4,096 characters. These previews last for the current app session; request/response pairs are also written to downloadable text log files.
+- **History and reports:** Locally retained run results, CSV exports, and downloadable request logs. Desktop CSV and log downloads are saved to the user's Downloads folder.
+- **System monitoring:** CPU utilization, system memory, platform, uptime, and in-flight requests from the machine running the backend.
+- **Customizable workspace:** Dark/light themes, movable metric cards and charts, resizable graphs and panel dividers, adjustable History columns, and saved layout preferences. **Reset layout** restores the default dashboard arrangement.
+- **Local persistence:** Workspace backup/restore, configurable history retention, and keyboard-accessible dialogs and resize controls.
 
-## Source layout
+## Development and packaging
 
-```text
-src/
-  apis/           # Typed frontend client: desktop RPC or development HTTP
-  backend/        # Desktop entry, service, load engine, storage
-  components/     # Shared controls, layout, charts, API modal, form editors
-  context/        # React provider and stable context identity for hot reloads
-  hooks/          # React state, polling, serialized saving, and commands
-  pages/          # Dashboard, Collections, Environments, History, Monitoring, Settings
-  shared/         # Runtime validation, domain types, defaults, RPC contract, reports
-  styles/         # Tailwind entry, theme, base, and shared page/table utilities
-tests/            # Real loopback HTTP integration and persistence tests
-scripts/          # Development process launcher and Windows packaging helper
+| Command                | Purpose                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| `npm run dev`          | Start the browser UI and local backend together                                 |
+| `npm run dev:desktop`  | Prepare tooling, build the desktop UI, and launch the desktop app               |
+| `npm run typecheck`    | Check TypeScript types                                                          |
+| `npm test`             | Run the Bun test suite                                                          |
+| `npm run check`        | Run type checking, tests, and a frontend production build                       |
+| `npm run format:check` | Check formatting                                                                |
+| `npm run build:view`   | Build the browser frontend into `dist/`                                         |
+| `npm run build`        | Prepare tooling, check types, build the desktop UI, and package the application |
+
+Windows release artifacts are generated in `artifacts/`. The build also prepares a portable application, normally launched with:
+
+```powershell
+.\build\portable\LoadMaster\bin\launcher.exe
 ```
 
-React owns the UI. The only DOM lookup is the required `createRoot` bootstrap in `src/main.tsx`; components use React state and events, with no query selectors, manual element mutation, or direct DOM manipulation. Dialog behavior is provided by Radix's React dialog component. Pages are loaded on demand.
+If the existing portable app locks files needed by an update, packaging creates a separate `build/portable-ready-*` folder and prints the new launcher path.
 
-Each visual component/page imports its matching stylesheet beside the TSX file: for example, `pages/Dashboard.tsx` imports `pages/Dashboard.css`, and `components/RunBoard.tsx` imports `components/RunBoard.css`. Responsive rules and component overrides live in that same CSS file. Edit the owner's stylesheet when changing a specific feature.
-
-`styles/index.css` is only the six-line global entry point. Theme variables live in `styles/theme.css`; element defaults, shared page headings, shared tables, and accessibility helpers have separate files in `styles/`. Reusable controls and dialogs live in `components/ui.css`. The two resizable panel components share `components/SplitPanels.css` for their divider and panel frame styles, with their own layout rules in their matching CSS files. Load the global entry before component imports, as shown in `main.tsx`.
-
-Browser right-click menus are disabled across the app, including dialogs. To explicitly enable a native menu for a future feature, wrap it in `<ContextMenuBoundary allowNative>`. Custom React context menus can handle the event and stop propagation inside the boundary.
-
-To add a page, create a component in `pages`, add its page ID to `shared/schema.ts`, register its lazy import in `App.tsx`, and add navigation in `components/Layout.tsx`. To add a backend operation, extend `shared/rpc.ts`, the service, desktop handlers, development server, and `apis/client.ts`.
-
-## Load and metric semantics
-
-- A virtual user walks through selected APIs in order. For each API it performs the configured number of iterations. Each iteration issues `parallel` requests, followed by request delay and optional randomized think time.
-- Ramp up introduces users over the configured interval. The collection duration is the overall ceiling; a per-API duration may end that API earlier. Runs also complete when all iteration counts are reached.
-- A collection rate limit is shared across APIs inheriting collection settings. An API override gets its own rate limit. Limits count individual requests, including parallel requests. Zero disables the limit.
-- Limits: **1,000 users per API**, **20 parallel requests per API iteration**, **200 in-flight requests across all runs**, **four simultaneous tests**. This is a single-machine HTTP load generator, not a distributed test service.
-- Timings include receiving the full response body. Byte throughput measures received, decoded response-body bytes; it excludes HTTP/TLS headers and upload bytes.
-- Default success means a status below 400. An explicit expected status replaces this rule; a response-text assertion can additionally fail the request. Response assertions search the first 1 MB. HTTPS certificate checks remain enabled.
-- Percentiles are approximated with 5 ms buckets, with bounded per-run storage. Latency chart values are cumulative. The chart retains the latest 600 one-second samples; endpoint totals cover the full run.
-- Requests cancelled by a final stop/duration cutoff are excluded from completed response metrics. In-flight completions during pause remain counted. The final requests/sec value is the run average; live values describe the latest update interval.
-- History retention is configurable up to 100 runs. Workspace configuration is saved using Save actions; starting a run saves it first. API additions/edits, collection/environment creation, and theme changes save automatically.
-
-## Data
-
-Browser development stores data in `.data/`. Packaged apps use Electrobun's application-scoped user-data directory (under `%APPDATA%` on Windows). Development desktop and stable desktop channels use separate directories. Workspace and history use serialized atomic JSON file writes. Credentials and environment values are stored locally in plain text; exported workspace backups include them. Masking secret fields is a display feature.
-
-Dashboard placement and column widths are UI preferences stored in the webview's local storage. They are independent of unsaved collection/environment edits and workspace JSON backups. If storage is unavailable, adjustments still work for the current session.
-
-The Windows build uses `assets/loadmaster.ico` for the app and installer icon. It includes sizes from 16 to 256 px. Editable vector artwork is in `assets/loadmaster.svg`, with a 512 px PNG preview beside it; normal builds use the checked-in icon directly.
-
-If a running portable app locks a changed executable, packaging creates a complete copy in `build/portable-ready-*/LoadMaster` and prints its launcher path. The running app is left open.
-
-The development server listens on loopback only. Packaged UI uses typed Electrobun RPC directly; it does not depend on the Vite server or a fixed localhost port. All test HTTP requests execute in Bun, so browser CORS restrictions do not apply.
-
-## Validation
-
-```sh
-npm run check
-npm run format:check
-```
-
-Tests use only an ephemeral local HTTP server. They cover request preparation, nested/missing/circular variables, authentication, bodies, counts, failures, pause/resume/stop, per-API overrides, rate limiting, JSON persistence, and CSV escaping. Network-restricted execution sandboxes must allow loopback connections for integration tests.
-
-`package-lock.json` records the latest stable dependency versions resolved during implementation. Update dependencies deliberately, then run validation and rebuild the desktop package.
-
-Framework integration follows the official [Electrobun SDK and project ownership documentation](https://framework.blackboard.sh/electrobun/guides/project-ownership/) and [build configuration documentation](https://framework.blackboard.sh/electrobun/apis/cli/build-configuration/).
+The source is organized into `src/pages` and `src/components` for the UI, `src/backend` for the load engine and storage, `src/shared` for schemas and shared helpers, and `tests` for automated checks.

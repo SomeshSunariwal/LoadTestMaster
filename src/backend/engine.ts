@@ -7,7 +7,7 @@ import type {
   RunSnapshot,
 } from '../shared/schema';
 import { prepareRequest } from './variables';
-import { RequestLogs, logHeaders, logPreviewLimit } from './requestLogs';
+import { RequestLogs, RunLogFiles, logHeaders, logPreviewLimit } from './requestLogs';
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 const bounds = [25, 50, 100, 200, 300, 500, 1000, 2000, 5000, 10000, 30000, Infinity];
@@ -52,15 +52,44 @@ interface ActiveRun {
 
 export class LoadEngine {
   private logs = new RequestLogs();
+  private runLogFiles?: RunLogFiles;
+  private logWriteErrorReported = false;
   getLogs(runId: string, apiId: string) {
     return this.logs.get(runId, apiId);
+  }
+  getRunSnapshot(runId: string) {
+    const run = this.runs.find((item) => item.id === runId);
+    if (!run) throw new Error('Run not found.');
+    return structuredClone(run);
+  }
+  async getLogFiles(runId: string) {
+    const run = this.runs.find((item) => item.id === runId);
+    if (!run) throw new Error('Run not found.');
+    return (await this.runLogFiles?.list(run.id, run.name)) ?? [];
+  }
+  async readLogChunk(runId: string, name: string, offset: number) {
+    const run = this.runs.find((item) => item.id === runId);
+    if (!run) throw new Error('Run not found.');
+    if (!this.runLogFiles) throw new Error('Log files are unavailable.');
+    return this.runLogFiles.readChunk(run.id, run.name, name, offset);
+  }
+  async downloadLog(runId: string, name: string, destinationDirectory: string) {
+    const run = this.runs.find((item) => item.id === runId);
+    if (!run) throw new Error('Run not found.');
+    if (!this.runLogFiles) throw new Error('Log files are unavailable.');
+    return this.runLogFiles.copyTo(run.id, run.name, name, destinationDirectory);
   }
   private active = new Map<string, ActiveRun>();
   private archived: RunSnapshot[] = [];
   private inFlight = 0;
   private retention = 30;
 
-  constructor(private onComplete: (run: RunSnapshot) => void = () => {}) {}
+  constructor(
+    private onComplete: (run: RunSnapshot) => void = () => {},
+    logDirectory?: string,
+  ) {
+    if (logDirectory) this.runLogFiles = new RunLogFiles(logDirectory);
+  }
 
   get requestCount() {
     return this.inFlight;
@@ -168,7 +197,7 @@ export class LoadEngine {
           const c = api.useGlobal ? collection.config : api.config;
           if (
             user >= c.users ||
-            (completed.get(api.id) ?? 0) >= c.iterations ||
+            (c.iterations !== -1 && (completed.get(api.id) ?? 0) >= c.iterations) ||
             this.elapsed(run) >= c.duration
           )
             continue;
@@ -304,6 +333,16 @@ export class LoadEngine {
         durationMs: performance.now() - start,
         error,
       };
+      if (this.runLogFiles) {
+        void this.runLogFiles
+          .append(run.snapshot.id, run.snapshot.name, run.snapshot.startedAt, log)
+          .catch((e) => {
+            if (!this.logWriteErrorReported) {
+              this.logWriteErrorReported = true;
+              console.error('Request log file could not be written', e);
+            }
+          });
+      }
     }
     if (!this.active.has(run.snapshot.id)) return;
     const ms = performance.now() - start,
@@ -387,7 +426,9 @@ export class LoadEngine {
     this.onComplete(r.snapshot);
   }
 
-  shutdown() {
+  async shutdown() {
     for (const r of this.active.values()) this.finish(r, 'stopped');
+    while (this.inFlight > 0) await sleep(10);
+    await this.runLogFiles?.flush();
   }
 }

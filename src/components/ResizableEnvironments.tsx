@@ -1,5 +1,5 @@
-import './SplitPanels.css';
-import './ResizableEnvironments.css';
+import './css/SplitPanels.css';
+import './css/ResizableEnvironments.css';
 import type { ReactNode } from 'react';
 import { Group, Panel, Separator } from 'react-resizable-panels';
 import { FiMoreVertical } from 'react-icons/fi';

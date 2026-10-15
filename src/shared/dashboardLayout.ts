@@ -59,18 +59,19 @@ export function defaultDashboardLayout(cols: number): WidgetLayout[] {
 export function constrainDashboardLayout(items: readonly WidgetLayout[], cols: number) {
   return items.map((item) => {
     const graph = graphIds.includes(item.i);
+    const breakdown = item.i === 'breakdown';
     const metric = (metricIds as readonly string[]).includes(item.i);
     const w = metric ? 6 : Math.max(Math.min(12, cols), Math.min(cols, item.w));
     return {
       ...item,
       w,
       x: Math.min(item.x, cols - w),
-      h: metric ? 3 : graph ? Math.max(5, item.h) : 7,
+      h: metric ? 3 : graph || breakdown ? Math.max(5, item.h) : 7,
       minW: metric ? 6 : Math.min(12, cols),
       maxW: metric ? 6 : cols,
-      minH: metric ? 3 : graph ? 5 : 7,
-      maxH: metric ? 3 : graph ? 24 : 7,
-      isResizable: graph,
+      minH: metric ? 3 : graph || breakdown ? 5 : 7,
+      maxH: metric ? 3 : graph || breakdown ? 24 : 7,
+      isResizable: graph || breakdown,
     };
   });
 }

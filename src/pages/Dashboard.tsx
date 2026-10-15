@@ -1,4 +1,5 @@
-import './Dashboard.css';
+import './css/Dashboard.css';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   FiActivity,
   FiArrowUpRight,
@@ -14,17 +15,80 @@ import {
   FiArrowRight,
   FiDownload,
   FiX,
+  FiChevronDown,
 } from 'react-icons/fi';
+import type { RunLogFileInfo } from '../shared/schema';
 import { useApp } from '../hooks/useApp';
 import { client } from '../apis/client';
 import { number, clock } from '../shared/format';
 import { Badge, Button } from '../components/ui';
 import { RunBoard } from '../components/RunBoard';
-import { runCsv } from '../shared/reports';
 export function Dashboard() {
   const app = useApp();
   const runs = app.state!.runs.filter((run) => app.openRunIds.has(run.id));
   const run = runs.find((r) => r.id === app.runId) || runs[0];
+  const [logFiles, setLogFiles] = useState<RunLogFileInfo[]>([]);
+  const [loadingLogFiles, setLoadingLogFiles] = useState(false);
+  const runTabsRef = useRef<HTMLDivElement>(null);
+  const [runTabIndicator, setRunTabIndicator] = useState({ left: 0, width: 0 });
+  const [runTabIndicatorReady, setRunTabIndicatorReady] = useState(false);
+
+  useLayoutEffect(() => {
+    const tabs = runTabsRef.current;
+    const update = () => {
+      const activeTab = tabs?.querySelector<HTMLElement>('.run-tab.active');
+      if (activeTab) {
+        const runTabs = tabs?.querySelectorAll('.run-tab');
+        const isLastRunTab = runTabs?.[runTabs.length - 1] === activeTab;
+        const width = activeTab.offsetWidth - (isLastRunTab ? 4 : 0);
+        setRunTabIndicator({ left: activeTab.offsetLeft, width });
+        setRunTabIndicatorReady(width > 0);
+      }
+    };
+    update();
+    if (!tabs) return;
+    const observer = new ResizeObserver(update);
+    observer.observe(tabs);
+    const activeTab = tabs.querySelector<HTMLElement>('.run-tab.active');
+    if (activeTab) observer.observe(activeTab);
+    return () => observer.disconnect();
+  }, [run?.id, runs.length]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLogFiles([]);
+    if (!run || ['running', 'paused'].includes(run.status)) return;
+    setLoadingLogFiles(true);
+    void client
+      .logFiles(run.id)
+      .then((files) => {
+        if (!cancelled) setLogFiles(files);
+      })
+      .catch((error) => {
+        if (!cancelled) app.setError(error instanceof Error ? error.message : 'Could not list logs.');
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingLogFiles(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [run?.id, run?.status]);
+
+  const downloadLog = (name: string) => {
+    if (!run) return;
+    void app.perform(async () => {
+      const location = await client.downloadLog(run.id, name);
+      app.setNotice(`Downloaded log to ${location}`);
+    });
+  };
+  const downloadCsv = () => {
+    if (!run) return;
+    void app.perform(async () => {
+      const location = await client.downloadCsv(run.id);
+      app.setNotice(`Exported CSV to ${location}`);
+    });
+  };
   return (
     <>
       <div className="page-heading">
@@ -158,7 +222,12 @@ export function Dashboard() {
         </div>
       ) : (
         <>
-          <div className="tabs run-tabs" role="tablist" aria-label="Load test runs">
+          <div
+            ref={runTabsRef}
+            className={`tabs run-tabs ${runTabIndicatorReady ? 'indicator-ready' : ''}`}
+            role="tablist"
+            aria-label="Load test runs"
+          >
             {runs.map((r) => (
               <div key={r.id} className={`run-tab ${run.id === r.id ? 'active' : ''}`}>
                 <button
@@ -186,6 +255,11 @@ export function Dashboard() {
                 </button>
               </div>
             ))}
+            <span
+              className="run-tab-indicator"
+              aria-hidden="true"
+              style={{ left: runTabIndicator.left, width: runTabIndicator.width }}
+            />
             <button
               type="button"
               className="run-tab-add"
@@ -256,15 +330,40 @@ export function Dashboard() {
                 </div>
               </div>
               <div className="actions">
-                <a
-                  className="button secondary"
-                  download={`loadmaster-${run.id.slice(0, 8)}.csv`}
-                  href={`data:text/csv;charset=utf-8,${encodeURIComponent(runCsv(run))}`}
-                  title="Export endpoint results"
-                >
-                  <FiDownload />
-                  Export CSV
-                </a>
+                {!['running', 'paused'].includes(run.status) && (
+                  logFiles.length > 1 ? (
+                    <details className="log-download-menu">
+                      <summary className="button secondary" aria-busy={loadingLogFiles}>
+                        <FiDownload />
+                        Download Log
+                        <FiChevronDown />
+                      </summary>
+                      <div className="log-download-list" role="menu" aria-label="Download a log file">
+                        {logFiles.map((file) => (
+                          <button key={file.name} role="menuitem" onClick={() => downloadLog(file.name)}>
+                            <FiDownload />
+                            {file.name}
+                          </button>
+                        ))}
+                      </div>
+                    </details>
+                  ) : (
+                    <Button
+                      disabled={loadingLogFiles || logFiles.length === 0}
+                      title={logFiles.length === 0 ? 'No request logs were captured for this run.' : 'Download request log'}
+                      onClick={() => logFiles[0] && downloadLog(logFiles[0].name)}
+                    >
+                      <FiDownload />
+                      Download Log
+                    </Button>
+                  )
+                )}
+                {!['running', 'paused'].includes(run.status) && (
+                  <Button title="Export endpoint results" onClick={downloadCsv}>
+                    <FiDownload />
+                    Export CSV
+                  </Button>
+                )}
                 {['running', 'paused'].includes(run.status) ? (
                   <>
                     <Button
