@@ -1,0 +1,20 @@
+.config-section {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+}
+.config-section:last-child {
+  border-bottom: 0;
+}
+.config-section h4 {
+  margin-bottom: 15px;
+  font-size: 11px;
+}
+.config-section .field input {
+  padding: 8px 9px;
+}
+.config-section .field > span {
+  font-size: 9px;
+}
+.config-section .form-grid {
+  gap: 13px 11px;
+}

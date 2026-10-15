@@ -1,3 +1,4 @@
+import './LoadConfigForm.css';
 import type { LoadConfig } from '../shared/schema';
 import { NumberField, Toggle } from './ui';
 export function LoadConfigForm({

@@ -5,7 +5,6 @@ import { resolve } from 'node:path';
 import { electrobunViteAliases } from './.hutch/devkit/api/config/electrobun-vite.ts';
 
 export default defineConfig(() => {
-  
   const devkit = resolve('.hutch/devkit');
   const aliases = electrobunViteAliases(devkit);
 
@@ -26,5 +25,4 @@ export default defineConfig(() => {
     },
     build: { outDir: 'dist', chunkSizeWarningLimit: 800 },
   };
-
 });

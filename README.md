@@ -76,12 +76,16 @@ src/
   hooks/          # React state, polling, serialized saving, and commands
   pages/          # Dashboard, Collections, Environments, History, Monitoring, Settings
   shared/         # Runtime validation, domain types, defaults, RPC contract, reports
-  styles/         # Tailwind 4 import, theme variables, component and responsive styles
+  styles/         # Tailwind entry, theme, base, and shared page/table utilities
 tests/            # Real loopback HTTP integration and persistence tests
 scripts/          # Development process launcher and Windows packaging helper
 ```
 
 React owns the UI. The only DOM lookup is the required `createRoot` bootstrap in `src/main.tsx`; components use React state and events, with no query selectors, manual element mutation, or direct DOM manipulation. Dialog behavior is provided by Radix's React dialog component. Pages are loaded on demand.
+
+Each visual component/page imports its matching stylesheet beside the TSX file: for example, `pages/Dashboard.tsx` imports `pages/Dashboard.css`, and `components/RunBoard.tsx` imports `components/RunBoard.css`. Responsive rules and component overrides live in that same CSS file. Edit the owner's stylesheet when changing a specific feature.
+
+`styles/index.css` is only the six-line global entry point. Theme variables live in `styles/theme.css`; element defaults, shared page headings, shared tables, and accessibility helpers have separate files in `styles/`. Reusable controls and dialogs live in `components/ui.css`. The two resizable panel components share `components/SplitPanels.css` for their divider and panel frame styles, with their own layout rules in their matching CSS files. Load the global entry before component imports, as shown in `main.tsx`.
 
 Browser right-click menus are disabled across the app, including dialogs. To explicitly enable a native menu for a future feature, wrap it in `<ContextMenuBoundary allowNative>`. Custom React context menus can handle the event and stop propagation inside the boundary.
 

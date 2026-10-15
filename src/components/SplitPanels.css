@@ -1,0 +1,60 @@
+.column-divider {
+  width: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--faint);
+  cursor: col-resize;
+  outline: none;
+  touch-action: none;
+}
+.column-divider::before {
+  content: '';
+  height: 42px;
+  width: 3px;
+  background: var(--border);
+  border-radius: 4px;
+}
+.column-divider > svg {
+  position: absolute;
+  width: 12px;
+  height: 20px;
+  background: var(--bg);
+}
+.column-divider:hover,
+.column-divider[data-separator='active'],
+.column-divider:focus-visible {
+  color: var(--blue);
+}
+.column-divider:hover::before,
+.column-divider:focus-visible::before {
+  background: var(--blue);
+}
+.column-divider {
+  position: relative;
+}
+.split-panel-content {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* The panel library otherwise adds an extra scroller around each panel. */
+  overflow: hidden !important;
+}
+.split-panel-content > .panel {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+.split-panel-content .panel-title,
+.split-panel-content .collection-heading,
+.split-panel-content .variable-heading,
+.split-panel-content .search,
+.split-panel-content .api-list-footer,
+.split-panel-content .configuration-footer,
+.split-panel-content .variable-footer {
+  flex-shrink: 0;
+}

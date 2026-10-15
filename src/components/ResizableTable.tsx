@@ -1,3 +1,4 @@
+import './ResizableTable.css';
 import { useState, type PointerEvent, type ReactNode } from 'react';
 import { useContainerWidth } from 'react-grid-layout';
 import { z } from 'zod';

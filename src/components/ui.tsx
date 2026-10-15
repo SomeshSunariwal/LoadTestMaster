@@ -1,3 +1,4 @@
+import './ui.css';
 import type {
   ButtonHTMLAttributes,
   InputHTMLAttributes,

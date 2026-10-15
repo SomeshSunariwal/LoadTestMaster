@@ -1,3 +1,4 @@
+import './Dashboard.css';
 import {
   FiActivity,
   FiArrowUpRight,
@@ -303,8 +304,7 @@ export function Dashboard() {
               </div>
             </div>
             <RunBoard run={run} />
-            <div className="dashboard-foot">
-            </div>
+            <div className="dashboard-foot"></div>
           </div>
         </>
       )}

@@ -1,0 +1,60 @@
+.pair-editor {
+  min-width: 0;
+}
+.pair-row {
+  display: grid;
+  grid-template-columns: 20px minmax(100px, 0.8fr) minmax(140px, 1.2fr) 28px;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.pair-row input {
+  font-size: 11px;
+  padding: 10px 11px;
+}
+.pair-heading {
+  font-size: 10px;
+  color: var(--muted);
+  border-radius: 5px;
+  background: var(--surface-raised);
+  padding: 12px 0;
+  margin-bottom: 14px;
+}
+.pair-heading > span:last-child {
+  width: 28px;
+}
+@media (max-width: 1050px) {
+  .pair-row {
+    gap: 8px;
+    grid-template-columns: 18px minmax(70px, 0.8fr) minmax(90px, 1.2fr) 26px;
+  }
+}
+@media (max-width: 800px) {
+  .pair-row input {
+    padding: 9px 7px;
+  }
+}
+.scrollable-pair-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.scrollable-pair-editor > .pair-heading,
+.scrollable-pair-editor > .button {
+  flex-shrink: 0;
+}
+.scrollable-pair-editor > .button {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+.scrollable-pair-editor .pair-rows {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.scrollable-pair-editor .pair-heading {
+  margin-right: 8px;
+}

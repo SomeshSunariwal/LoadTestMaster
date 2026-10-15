@@ -1,3 +1,4 @@
+import './Collections.css';
 import { useState } from 'react';
 import {
   FiFolder,
