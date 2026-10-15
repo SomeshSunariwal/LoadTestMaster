@@ -1,4 +1,4 @@
-import './RunBoard.css';
+import './css/RunBoard.css';
 import { useMemo, useState } from 'react';
 import GridLayout, { useContainerWidth, type Layout } from 'react-grid-layout';
 import {
@@ -136,7 +136,7 @@ export function RunBoard({ run }: { run: RunSnapshot }) {
       <div className="board-toolbar">
         <span>
           <FiGrid />
-          Drag a card’s move handle. Resize graphs from their corner.
+          Drag a card’s move handle. Resize graphs and the request breakdown from their corner.
         </span>
         <Button variant="ghost" onClick={() => savePreferences({})}>
           <FiRotateCcw />

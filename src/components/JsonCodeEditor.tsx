@@ -1,4 +1,4 @@
-import './JsonCodeEditor.css';
+import './css/JsonCodeEditor.css';
 import { useMemo, useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { json, jsonParseLinter } from '@codemirror/lang-json';

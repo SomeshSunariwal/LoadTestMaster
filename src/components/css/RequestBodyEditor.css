@@ -5,23 +5,30 @@
   margin-bottom: 8px;
   gap: 8px;
 }
-.segmented {
+.body-type-tabs {
+  position: relative;
   display: flex;
   gap: 2px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
 }
-.segmented > button {
-  border: 1px solid transparent;
-  background: none;
-  border-radius: 4px;
+.body-type-tabs > button {
+  flex: 0 0 auto;
   font-size: 9px;
-  padding: 6px;
-  color: var(--muted);
+  padding: 8px 9px;
 }
-.segmented > button.active {
-  color: var(--blue);
-  background: #4d8dff15;
-  border-color: #4d8dff33;
+.body-type-tabs.indicator-ready > button.active {
+  border-bottom-color: transparent;
+}
+.body-type-tab-indicator {
+  position: absolute;
+  z-index: 2;
+  bottom: 0;
+  height: 2px;
+  background: var(--blue);
+  pointer-events: none;
+  transition: left 300ms ease, width 300ms ease;
 }
 .body-toolbar .button {
   font-size: 9px;
@@ -137,6 +144,9 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .body-view-tabs::before {
+    transition: none;
+  }
+  .body-type-tab-indicator {
     transition: none;
   }
 }

@@ -1,5 +1,5 @@
-import './RequestBodyEditor.css';
-import { useState } from 'react';
+import './css/RequestBodyEditor.css';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { FiCode, FiCornerDownLeft } from 'react-icons/fi';
 import type { ApiDefinition } from '../shared/schema';
 import type { JsonValue } from '../shared/jsonTree';
@@ -23,6 +23,17 @@ export function RequestBodyEditor({
   const [view, setView] = useState<'text' | 'tree'>('text');
   const [error, setError] = useState('');
   const [wrapText, setWrapText] = useState(true);
+  const bodyTabsRef = useRef<HTMLDivElement>(null);
+  const [bodyTabIndicator, setBodyTabIndicator] = useState({ left: 0, width: 0 });
+  const [bodyTabIndicatorReady, setBodyTabIndicatorReady] = useState(false);
+  useLayoutEffect(() => {
+    const tabs = bodyTabsRef.current;
+    const activeTab = tabs?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+    if (activeTab) {
+      setBodyTabIndicator({ left: activeTab.offsetLeft, width: activeTab.offsetWidth });
+      setBodyTabIndicatorReady(activeTab.offsetWidth > 0);
+    }
+  }, [type]);
   let parsed: JsonValue = null;
   let valid = true;
   try {
@@ -34,12 +45,19 @@ export function RequestBodyEditor({
     <section className="inset-section request-body-section">
       <h3>Request body</h3>
       <div className="body-toolbar">
-        <div className="segmented">
+        <div
+          ref={bodyTabsRef}
+          className={`tabs body-type-tabs ${bodyTabIndicatorReady ? 'indicator-ready' : ''}`}
+          role="tablist"
+          aria-label="Request body type"
+        >
           {['none', 'json', 'xml', 'raw', 'multipart', 'graphql'].map((t) => (
             <button
               type="button"
+              role="tab"
               key={t}
               className={type === t ? 'active' : ''}
+              aria-selected={type === t}
               onClick={() => {
                 onTypeChange(t as ApiDefinition['bodyType']);
                 setError('');
@@ -58,6 +76,11 @@ export function RequestBodyEditor({
                         : t[0].toUpperCase() + t.slice(1)}
             </button>
           ))}
+          <span
+            className="body-type-tab-indicator"
+            aria-hidden="true"
+            style={{ left: bodyTabIndicator.left, width: bodyTabIndicator.width }}
+          />
         </div>
         <div className="body-editor-actions">
           {type === 'json' && (

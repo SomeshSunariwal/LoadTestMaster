@@ -1,0 +1,86 @@
+.chart-panel {
+  padding: 16px 16px 10px;
+  overflow: hidden;
+}
+.requests-chart-panel > .recharts-responsive-container {
+  width: calc(100% - 10px) !important;
+}
+.chart-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+.chart-title h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+}
+.chart-title h3 > svg {
+  color: var(--faint);
+  font-size: 11px;
+}
+.legend {
+  display: flex;
+  gap: 13px;
+  font-size: 9px;
+  color: var(--muted);
+}
+.legend > button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  padding: 2px;
+  cursor: pointer;
+}
+.legend > button:hover {
+  color: var(--text);
+}
+.legend > button.is-hidden {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+.legend-swatch {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+@media (min-width: 1600px) {
+  .chart-panel .recharts-responsive-container {
+    min-height: 255px;
+  }
+}
+@media (max-width: 1250px) {
+  .chart-title {
+    flex-wrap: wrap;
+  }
+  .legend {
+    gap: 9px;
+  }
+}
+.chart-panel .recharts-wrapper,
+.chart-panel .recharts-surface,
+.chart-panel .recharts-wrapper:focus,
+.chart-panel .recharts-wrapper:focus-visible,
+.chart-panel .recharts-surface:focus,
+.chart-panel .recharts-surface:focus-visible {
+  outline: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+.chart-panel .recharts-wrapper :focus,
+.chart-panel .recharts-wrapper :focus-visible,
+.chart-panel .recharts-wrapper svg,
+.chart-panel .recharts-wrapper svg * {
+  outline: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}

@@ -1,5 +1,5 @@
 import { VariableTextarea } from '../components/VariableInput';
-import './Settings.css';
+import './css/Settings.css';
 import { FiDownload, FiUpload, FiMoon, FiSun, FiSave, FiInfo, FiZap } from 'react-icons/fi';
 import { useState } from 'react';
 import { useApp } from '../hooks/useApp';

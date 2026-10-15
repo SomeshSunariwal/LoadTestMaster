@@ -12,7 +12,9 @@ export const configSchema = z
     users: z.number().int().min(1).max(1000),
     duration: z.number().min(1).max(86400),
     rampUp: z.number().min(0).max(86400),
-    iterations: z.number().int().min(1).max(1000000),
+    iterations: z.number().int().min(-1).max(1000000).refine((value) => value !== 0, {
+      message: 'Use -1 for unlimited iterations, or enter a positive number.',
+    }),
     timeout: z.number().min(1).max(300),
     delay: z.number().min(0).max(60000),
     parallel: z.number().int().min(1).max(20),
@@ -110,6 +112,11 @@ export interface ApiRequestLog {
     durationMs: number;
     error: string;
   };
+}
+
+export interface RunLogFileInfo {
+  name: string;
+  size: number;
 }
 
 export interface Point {

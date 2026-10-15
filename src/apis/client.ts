@@ -1,4 +1,4 @@
-import type { ApiRequestLog, AppState, StartInput, Workspace } from '../shared/schema';
+import type { ApiRequestLog, AppState, RunLogFileInfo, StartInput, Workspace } from '../shared/schema';
 import type { AppRPC } from '../shared/rpc';
 
 type ControlInput = { id: string; action: 'pause' | 'resume' | 'stop' };
@@ -32,6 +32,16 @@ async function request<T>(method: string, input: unknown): Promise<T> {
 export const client = {
   state: () => request<AppState>('state', undefined),
   logs: (runId: string, apiId: string) => request<ApiRequestLog[]>('logs', { runId, apiId }),
+  logFiles: (runId: string) => request<RunLogFileInfo[]>('logFiles', { runId }),
+  readLogChunk: (runId: string, name: string, offset: number) =>
+    request<{ content: string; nextOffset: number; size: number }>('readLogChunk', {
+      runId,
+      name,
+      offset,
+    }),
+  downloadLog: (runId: string, name: string) =>
+    request<string>('downloadLog', { runId, name }),
+  downloadCsv: (runId: string) => request<string>('downloadCsv', { runId }),
   save: (v: Workspace) => request<Workspace>('save', v),
   start: (v: StartInput) => request<string>('start', v),
   control: (v: ControlInput) => request<boolean>('control', v),

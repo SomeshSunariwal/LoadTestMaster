@@ -1,5 +1,5 @@
 import { VariableInput } from './VariableInput';
-import './PairEditor.css';
+import './css/PairEditor.css';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import type { Pair } from '../shared/schema';
 import { pair } from '../shared/defaults';

@@ -1,5 +1,5 @@
 import { VariableInput } from '../components/VariableInput';
-import './Environments.css';
+import './css/Environments.css';
 import { useState } from 'react';
 import {
   FiPlus,

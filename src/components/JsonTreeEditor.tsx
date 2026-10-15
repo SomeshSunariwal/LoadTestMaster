@@ -1,4 +1,4 @@
-import './JsonTreeEditor.css';
+import './css/JsonTreeEditor.css';
 import { useEffect, useState } from 'react';
 import { FiChevronDown, FiChevronRight, FiPlus, FiTrash2 } from 'react-icons/fi';
 import {

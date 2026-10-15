@@ -1,6 +1,6 @@
 import { VariableInput } from './VariableInput';
-import './ApiModal.css';
-import { useState } from 'react';
+import './css/ApiModal.css';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { FiPlus, FiSave } from 'react-icons/fi';
 import { apiSchema, type ApiDefinition } from '../shared/schema';
 import { Button, Field, Modal, NumberField, Toggle, Select } from './ui';
@@ -20,6 +20,24 @@ export function ApiModal({
   const [api, setApi] = useState(() => structuredClone(initial));
   const [tab, setTab] = useState('Parameters');
   const [error, setError] = useState('');
+  const configTabsRef = useRef<HTMLDivElement>(null);
+  const [configTabIndicator, setConfigTabIndicator] = useState({ left: 0, width: 0 });
+  const [configTabIndicatorReady, setConfigTabIndicatorReady] = useState(false);
+  useLayoutEffect(() => {
+    const tabs = configTabsRef.current;
+    const update = () => {
+      const activeTab = tabs?.querySelector<HTMLElement>('[aria-selected="true"]');
+      if (activeTab) {
+        setConfigTabIndicator({ left: activeTab.offsetLeft, width: activeTab.offsetWidth });
+        setConfigTabIndicatorReady(activeTab.offsetWidth > 0);
+      }
+    };
+    update();
+    if (!tabs) return;
+    const observer = new ResizeObserver(update);
+    observer.observe(tabs);
+    return () => observer.disconnect();
+  }, [tab, api.params.length, api.headers.length]);
   const set = <K extends keyof ApiDefinition>(key: K, value: ApiDefinition[K]) =>
     setApi((a) => ({ ...a, [key]: value }));
   const submit = () => {
@@ -91,12 +109,19 @@ export function ApiModal({
           </section>
           <section className="inset-section">
             <h3>Request configuration</h3>
-            <div className="tabs compact">
+            <div
+              ref={configTabsRef}
+              className={`tabs compact ${configTabIndicatorReady ? 'indicator-ready' : ''}`}
+              role="tablist"
+              aria-label="Request configuration"
+            >
               {['Parameters', 'Headers', 'Auth'].map((t) => (
                 <button
                   type="button"
+                  role="tab"
                   key={t}
                   className={tab === t ? 'active' : ''}
+                  aria-selected={tab === t}
                   onClick={() => setTab(t)}
                 >
                   {t}
@@ -107,6 +132,11 @@ export function ApiModal({
                       : ''}
                 </button>
               ))}
+              <span
+                className="config-tab-indicator"
+                aria-hidden="true"
+                style={{ left: configTabIndicator.left, width: configTabIndicator.width }}
+              />
             </div>
             {tab === 'Parameters' && (
               <PairEditor items={api.params} onChange={(v) => set('params', v)} />

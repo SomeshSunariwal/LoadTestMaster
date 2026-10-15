@@ -1,8 +1,9 @@
-import { BrowserView, BrowserWindow, Utils } from 'electrobun/main';
+import { BrowserView, BrowserWindow } from 'electrobun/main';
 import type { AppRPC } from '../shared/rpc';
+import { getDataDirectory } from './utils';
 import { createService } from './service';
 
-const service = await createService(Utils.paths.userData);
+const service = await createService(getDataDirectory());
 let rendererConnected = false;
 
 const rpc = BrowserView.defineRPC<AppRPC>({
@@ -17,6 +18,10 @@ const rpc = BrowserView.defineRPC<AppRPC>({
       },
       save: (workspace) => service.save(workspace),
       logs: (input) => service.logs(input),
+      logFiles: (input) => service.logFiles(input),
+      readLogChunk: (input) => service.readLogChunk(input),
+      downloadLog: (input) => service.downloadLog(input),
+      downloadCsv: (input) => service.downloadCsv(input),
       start: (input) => service.start(input),
       control: (input) => service.control(input),
       deleteRun: (input) => service.deleteRun(input),
