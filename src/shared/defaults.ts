@@ -1,5 +1,6 @@
 import type { ApiDefinition, LoadConfig, Pair, Workspace } from './schema';
 export const uid = () => crypto.randomUUID();
+
 export const defaultConfig: LoadConfig = {
   users: 10,
   duration: 60,
@@ -13,7 +14,9 @@ export const defaultConfig: LoadConfig = {
   thinkMin: 100,
   thinkMax: 500,
 };
+
 export const pair = (key = '', value = ''): Pair => ({ id: uid(), key, value, enabled: true });
+
 export const blankApi = (): ApiDefinition => ({
   id: uid(),
   name: '',
@@ -35,6 +38,7 @@ export const blankApi = (): ApiDefinition => ({
   useGlobal: true,
   config: { ...defaultConfig },
 });
+
 export function seedWorkspace(): Workspace {
   const env = (id: string, name: string, color: string, url: string) => ({
     id,
@@ -47,6 +51,7 @@ export function seedWorkspace(): Workspace {
       pair('authToken', ''),
     ],
   });
+
   const makeApi = (name: string, method: ApiDefinition['method'], path: string) => ({
     ...blankApi(),
     name,
@@ -55,6 +60,7 @@ export function seedWorkspace(): Workspace {
     bodyType: method === 'POST' ? ('json' as const) : ('none' as const),
     body: method === 'POST' ? '{\n  "productId": "{{productId}}",\n  "quantity": 1\n}' : '',
   });
+
   return {
     theme: 'dark',
     retention: 30,

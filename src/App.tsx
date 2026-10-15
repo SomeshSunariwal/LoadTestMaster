@@ -1,3 +1,4 @@
+import './App.css';
 import { Component, Suspense, lazy, type ReactNode } from 'react';
 import { FiZap } from 'react-icons/fi';
 import { useApp } from './hooks/useApp';

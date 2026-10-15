@@ -1,0 +1,163 @@
+.api-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 10px;
+}
+.api-main,
+.api-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.inset-section {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--input);
+  padding: 12px;
+}
+.inset-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.api-details-grid {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 13px;
+  margin-bottom: 10px;
+}
+.inset-section input,
+.inset-section select,
+.inset-section textarea {
+  background: var(--bg);
+}
+.compact > button {
+  font-size: 10px;
+  padding: 9px 11px;
+}
+.compact {
+  margin-bottom: 8px;
+  gap: 0;
+  justify-content: flex-start;
+}
+.api-modal-grid .pair-row {
+  grid-template-columns: 18px minmax(60px, 0.8fr) minmax(70px, 1.2fr) 26px;
+  gap: 7px;
+}
+.api-modal-grid .pair-row input {
+  padding: 8px;
+  font-size: 10px;
+}
+.api-modal-grid .pair-heading {
+  padding: 9px 0;
+  font-size: 9px;
+}
+.api-main .config-section {
+  padding-top: 12px;
+}
+.api-editor-modal {
+  padding: 18px;
+}
+.modal.api-editor-modal {
+  width: 1280px;
+  max-width: calc(100vw - 48px);
+}
+.api-editor-modal .modal-heading {
+  margin-bottom: 14px;
+}
+.api-editor-modal .modal-footer {
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.api-modal-grid .stack {
+  padding-top: 0;
+  gap: 10px;
+}
+.api-modal-grid .body-empty {
+  height: 56px;
+}
+.api-assertions {
+  margin-top: 10px;
+  font-size: 11px;
+}
+.api-assertions summary {
+  cursor: pointer;
+  color: var(--muted);
+}
+.api-assertions[open] {
+  display: grid;
+  gap: 10px;
+}
+@media (max-width: 800px) {
+  .api-modal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.api-editor-modal {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.api-editor-modal .modal-heading,
+.api-editor-modal .modal-footer {
+  flex-shrink: 0;
+}
+.api-modal-grid {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+.api-main {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.api-side {
+  contain: size;
+  min-width: 0;
+  min-height: 0;
+}
+.api-side .request-body-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.api-side .body-toolbar,
+.api-side .request-body-section h3 {
+  flex-shrink: 0;
+}
+.api-side .body-editor-box {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+.api-side .body-empty {
+  height: 100%;
+}
+@media (max-width: 800px) {
+  .api-editor-modal {
+    height: auto;
+  }
+  .modal.api-editor-modal {
+    max-width: calc(100vw - 24px);
+  }
+  .api-modal-grid {
+    overflow-y: auto;
+  }
+  .api-main {
+    overflow: visible;
+    padding-right: 0;
+  }
+  .api-side {
+    contain: none;
+    min-height: 520px;
+  }
+}
+
+.api-main > .inset-section {
+  flex-shrink: 0;
+}

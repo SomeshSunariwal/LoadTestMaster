@@ -1,0 +1,56 @@
+.collections-layout {
+  display: grid;
+  grid-template-columns: 205px minmax(280px, 1fr) 308px;
+  gap: 15px;
+  align-items: stretch;
+  min-height: calc(100vh - 245px);
+}
+@media (min-width: 1600px) {
+  .collections-layout {
+    grid-template-columns: 235px minmax(380px, 1fr) 350px;
+  }
+}
+@media (max-width: 1250px) {
+  .collections-layout {
+    grid-template-columns: 175px minmax(260px, 1fr) 275px;
+    gap: 10px;
+  }
+}
+@media (max-width: 1050px) {
+  .collections-layout {
+    grid-template-columns: 180px 1fr;
+  }
+}
+@media (max-width: 800px) {
+  .collections-layout {
+    grid-template-columns: 160px minmax(0, 1fr);
+  }
+}
+.collections-columns-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto hidden;
+  padding-bottom: 5px;
+}
+.collections-layout.resizable-collections {
+  min-width: 840px;
+  gap: 0;
+  min-height: 0;
+}
+.resizable-collections .configuration-content {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  display: block;
+}
+.resizable-collections .configuration-content > .config-section:last-child {
+  display: block;
+}
+.resizable-collections .configuration-footer .button {
+  width: 100%;
+  min-width: 0;
+}
+.resizable-collections .collection-list,
+.resizable-collections .api-list {
+  min-height: 0;
+}

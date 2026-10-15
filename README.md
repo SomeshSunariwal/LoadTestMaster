@@ -61,6 +61,10 @@ The Local environment defaults to `http://localhost:3000`; start your own server
 - Drag History column dividers to adjust widths. Focus a divider and use the left/right arrow keys for 10 px changes, or Shift + arrow for 30 px. Column proportions persist on this device.
 - Dashboard headings and run tabs stay fixed while results scroll. Collections, APIs, configuration, environment lists, variable rows, and History each scroll internally with their headers and actions kept visible.
 - The API table shows **Global** for inherited collection settings and **Own API** for per-API overrides.
+- Type `{{` in a text field to suggest enabled variables from the collection's environment (or the environment being edited). Type to filter, use arrow keys and Enter/Tab to insert, or click a suggestion. Escape dismisses the list. Variable values are not displayed in suggestions.
+- Recognized `{{variableName}}` references are highlighted orange in fields and JSON editors. Password fields remain masked.
+- Request body lives in the API editor's right column. JSON has synchronized **Text** and editable **Tree** views, including nested objects/arrays, key renaming, value/type editing, adding/removing entries, and collapsing branches. Invalid JSON stays editable in Text view until corrected. Commit a renamed key with Enter or by leaving the field.
+- Response assertions remain available under **Advanced options → Response assertions**; the separate Assertions tab has been removed.
 - Local workspace persistence and retained run history.
 - System CPU, memory, platform, uptime, and in-flight request monitoring.
 - Theme persistence, workspace JSON backup/restore, CSV reports, keyboard-accessible dialogs, and layouts that adapt to smaller windows.
@@ -76,12 +80,16 @@ src/
   hooks/          # React state, polling, serialized saving, and commands
   pages/          # Dashboard, Collections, Environments, History, Monitoring, Settings
   shared/         # Runtime validation, domain types, defaults, RPC contract, reports
-  styles/         # Tailwind 4 import, theme variables, component and responsive styles
+  styles/         # Tailwind entry, theme, base, and shared page/table utilities
 tests/            # Real loopback HTTP integration and persistence tests
 scripts/          # Development process launcher and Windows packaging helper
 ```
 
 React owns the UI. The only DOM lookup is the required `createRoot` bootstrap in `src/main.tsx`; components use React state and events, with no query selectors, manual element mutation, or direct DOM manipulation. Dialog behavior is provided by Radix's React dialog component. Pages are loaded on demand.
+
+Each visual component/page imports its matching stylesheet beside the TSX file: for example, `pages/Dashboard.tsx` imports `pages/Dashboard.css`, and `components/RunBoard.tsx` imports `components/RunBoard.css`. Responsive rules and component overrides live in that same CSS file. Edit the owner's stylesheet when changing a specific feature.
+
+`styles/index.css` is only the six-line global entry point. Theme variables live in `styles/theme.css`; element defaults, shared page headings, shared tables, and accessibility helpers have separate files in `styles/`. Reusable controls and dialogs live in `components/ui.css`. The two resizable panel components share `components/SplitPanels.css` for their divider and panel frame styles, with their own layout rules in their matching CSS files. Load the global entry before component imports, as shown in `main.tsx`.
 
 Browser right-click menus are disabled across the app, including dialogs. To explicitly enable a native menu for a future feature, wrap it in `<ContextMenuBoundary allowNative>`. Custom React context menus can handle the event and stop propagation inside the boundary.
 

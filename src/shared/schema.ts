@@ -6,6 +6,7 @@ export const pairSchema = z.object({
   value: z.string().max(100000),
   enabled: z.boolean(),
 });
+
 export const configSchema = z
   .object({
     users: z.number().int().min(1).max(1000),
@@ -24,6 +25,7 @@ export const configSchema = z
     message: 'Maximum think time must be at least the minimum.',
     path: ['thinkMax'],
   });
+
 export const apiSchema = z.object({
   id: z.string(),
   name: z.string().trim().min(1).max(200),
@@ -36,7 +38,7 @@ export const apiSchema = z.object({
   token: z.string(),
   username: z.string(),
   password: z.string(),
-  bodyType: z.enum(['none', 'json', 'raw', 'form', 'graphql']),
+  bodyType: z.enum(['none', 'json', 'xml', 'raw', 'form', 'multipart', 'graphql']),
   body: z.string().max(1000000),
   expectedStatus: z.number().int().min(0).max(599),
   responseContains: z.string(),
@@ -45,12 +47,14 @@ export const apiSchema = z.object({
   useGlobal: z.boolean(),
   config: configSchema,
 });
+
 export const environmentSchema = z.object({
   id: z.string(),
   name: z.string().trim().min(1).max(100),
   color: z.string(),
   variables: z.array(pairSchema).max(300),
 });
+
 export const collectionSchema = z.object({
   id: z.string(),
   name: z.string().trim().min(1).max(200),
@@ -60,12 +64,14 @@ export const collectionSchema = z.object({
   config: configSchema,
   apis: z.array(apiSchema).max(500),
 });
+
 export const workspaceSchema = z.object({
   collections: z.array(collectionSchema).max(100),
   environments: z.array(environmentSchema).max(100),
   theme: z.enum(['dark', 'light']),
   retention: z.number().int().min(1).max(100),
 });
+
 export type Pair = z.infer<typeof pairSchema>;
 export type LoadConfig = z.infer<typeof configSchema>;
 export type ApiDefinition = z.infer<typeof apiSchema>;
@@ -75,6 +81,7 @@ export type Workspace = z.infer<typeof workspaceSchema>;
 export type Page =
   'dashboard' | 'collections' | 'environments' | 'history' | 'monitoring' | 'settings';
 export type RunStatus = 'running' | 'paused' | 'completed' | 'stopped';
+
 export interface EndpointStats {
   id: string;
   name: string;
@@ -88,6 +95,23 @@ export interface EndpointStats {
   p99: number;
   lastError: string;
 }
+
+export interface ApiRequestLog {
+  id: string;
+  apiId: string;
+  requestAt: string;
+  request: { method: string; url: string; headers: Record<string, string>; body: string };
+  responseAt?: string;
+  response?: {
+    status?: number;
+    headers: Record<string, string>;
+    body: string;
+    bytes: number;
+    durationMs: number;
+    error: string;
+  };
+}
+
 export interface Point {
   second: number;
   rps: number;
@@ -96,6 +120,7 @@ export interface Point {
   p95: number;
   p99: number;
 }
+
 export interface RunSnapshot {
   id: string;
   collectionId: string;
@@ -118,6 +143,7 @@ export interface RunSnapshot {
   endpoints: EndpointStats[];
   distribution: { range: string; count: number }[];
 }
+
 export interface Resources {
   cpu: number;
   memoryUsed: number;
@@ -126,11 +152,13 @@ export interface Resources {
   platform: string;
   inFlight: number;
 }
+
 export interface AppState {
   workspace: Workspace;
   runs: RunSnapshot[];
   resources: Resources;
 }
+
 export interface StartInput {
   collectionId: string;
   all: boolean;

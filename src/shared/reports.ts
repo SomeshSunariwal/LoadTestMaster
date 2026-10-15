@@ -6,6 +6,7 @@ function csvCell(value: string | number) {
   const safe = /^[=+\-@]/.test(text) ? `'${text}` : text;
   return `"${safe.replaceAll('"', '""')}"`;
 }
+
 export function runCsv(run: RunSnapshot) {
   const rows: (string | number)[][] = [
     ['Test', run.name],
@@ -26,6 +27,7 @@ export function runCsv(run: RunSnapshot) {
       'P99 ms',
     ],
   ];
+
   for (const e of run.endpoints)
     rows.push([
       e.method,
@@ -38,5 +40,6 @@ export function runCsv(run: RunSnapshot) {
       e.p95,
       e.p99,
     ]);
+
   return '\uFEFF' + rows.map((row) => row.map(csvCell).join(',')).join('\r\n');
 }

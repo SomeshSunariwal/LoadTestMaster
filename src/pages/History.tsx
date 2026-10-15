@@ -1,3 +1,4 @@
+import './History.css';
 import { FiClock, FiArrowUpRight, FiTrash2 } from 'react-icons/fi';
 import { useApp } from '../hooks/useApp';
 import { client } from '../apis/client';

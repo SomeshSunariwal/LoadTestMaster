@@ -67,6 +67,65 @@ async function complete(engine: LoadEngine, id: string) {
   }
   throw new Error('Run did not finish');
 }
+
+describe('API request logs', () => {
+  test('records cancellation responses after stopping an in-flight request', async () => {
+    const engine = new LoadEngine();
+    const c = collection('/slow', { users: 1, iterations: 1 });
+    const id = engine.start(c, env, true);
+    engine.control(id, 'stop');
+    for (let i = 0; i < 20; i++) {
+      if (engine.getLogs(id, c.apis[0]!.id)[0]?.response) break;
+      await Bun.sleep(10);
+    }
+    expect(engine.getLogs(id, c.apis[0]!.id)[0]?.response?.error).toBe(
+      'Request cancelled or timed out',
+    );
+    engine.shutdown();
+  });
+  test('records live requests and correlates successful responses by UUID', async () => {
+    const engine = new LoadEngine();
+    const c = collection('/slow', { users: 1, iterations: 1 });
+    const id = engine.start(c, env, true);
+    try {
+      const pending = engine.getLogs(id, c.apis[0]!.id);
+      expect(pending).toHaveLength(1);
+      expect(pending[0]!.id).toMatch(/^[0-9a-f-]{36}$/);
+      expect(pending[0]!.response).toBeUndefined();
+      await complete(engine, id);
+      const logs = engine.getLogs(id, c.apis[0]!.id);
+      expect(logs[0]!.id).toBe(pending[0]!.id);
+      expect(logs[0]!.response?.status).toBe(200);
+      expect(logs[0]!.response?.body).toContain('"ok":true');
+      expect(Date.parse(logs[0]!.responseAt!)).toBeGreaterThanOrEqual(
+        Date.parse(logs[0]!.requestAt),
+      );
+      expect(engine.getLogs(id, 'another-api')).toEqual([]);
+      engine.remove(id);
+      expect(engine.getLogs(id, c.apis[0]!.id)).toEqual([]);
+    } finally {
+      engine.shutdown();
+    }
+  });
+
+  test('records HTTP failures and masks sensitive headers', async () => {
+    const engine = new LoadEngine();
+    const c = collection('/error', { users: 1, iterations: 1 });
+    c.apis[0]!.auth = 'bearer';
+    c.apis[0]!.token = '{{token}}';
+    try {
+      const id = engine.start(c, env, true);
+      await complete(engine, id);
+      const log = engine.getLogs(id, c.apis[0]!.id)[0]!;
+      expect(log.request.headers.authorization).toBe('[redacted]');
+      expect(log.response?.status).toBe(503);
+      expect(log.response?.error).toBe('HTTP 503');
+      expect(log.response?.body).toBe('failure');
+    } finally {
+      engine.shutdown();
+    }
+  });
+});
 describe('environment variables', () => {
   test('resolves nested variables and reports missing or circular references', () => {
     expect(variableResolver(env)('{{nested}}')).toBe('secret');

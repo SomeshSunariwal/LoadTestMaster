@@ -1,4 +1,4 @@
-import type { AppState, StartInput, Workspace } from '../shared/schema';
+import type { ApiRequestLog, AppState, StartInput, Workspace } from '../shared/schema';
 import type { AppRPC } from '../shared/rpc';
 
 type ControlInput = { id: string; action: 'pause' | 'resume' | 'stop' };
@@ -31,6 +31,7 @@ async function request<T>(method: string, input: unknown): Promise<T> {
 
 export const client = {
   state: () => request<AppState>('state', undefined),
+  logs: (runId: string, apiId: string) => request<ApiRequestLog[]>('logs', { runId, apiId }),
   save: (v: Workspace) => request<Workspace>('save', v),
   start: (v: StartInput) => request<string>('start', v),
   control: (v: ControlInput) => request<boolean>('control', v),

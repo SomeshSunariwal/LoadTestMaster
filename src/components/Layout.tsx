@@ -1,3 +1,4 @@
+import './Layout.css';
 import {
   FiActivity,
   FiArrowUpRight,
@@ -21,7 +22,7 @@ import { Button, IconButton, Toast } from './ui';
 import type { ReactNode } from 'react';
 const navigation: { id: Page; label: string; icon: ReactNode }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <FiGrid /> },
-  { id: 'collections', label: 'Load Test Set', icon: <FiLayers /> },
+  { id: 'collections', label: 'Collections', icon: <FiLayers /> },
   { id: 'environments', label: 'Environments', icon: <FiDatabase /> },
   { id: 'history', label: 'History', icon: <FiClock /> },
   { id: 'monitoring', label: 'Monitoring', icon: <FiActivity /> },

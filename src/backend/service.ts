@@ -62,6 +62,11 @@ export async function createService(directory: string) {
       return saved;
     },
 
+    logs: (input: { runId: string; apiId: string }) => {
+      const value = z.object({ runId: z.string(), apiId: z.string() }).parse(input);
+      return engine.getLogs(value.runId, value.apiId);
+    },
+
     start: (input: StartInput) => {
       const { collectionId, all } = z
         .object({ collectionId: z.string(), all: z.boolean() })

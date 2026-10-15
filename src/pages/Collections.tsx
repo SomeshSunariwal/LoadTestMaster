@@ -1,3 +1,5 @@
+import { VariableInput } from '../components/VariableInput';
+import './Collections.css';
 import { useState } from 'react';
 import {
   FiFolder,
@@ -18,43 +20,40 @@ import { Badge, Button, Empty, Field, IconButton, Modal, Select } from '../compo
 import { LoadConfigForm } from '../components/LoadConfigForm';
 import { ApiModal } from '../components/ApiModal';
 import { ResizableColumns } from '../components/ResizableColumns';
+
 export function Collections() {
   const app = useApp();
   const ws = app.state!.workspace;
   const collection = ws.collections.find((c) => c.id === app.collectionId) || ws.collections[0];
   const [query, setQuery] = useState('');
+  const [collectionQuery, setCollectionQuery] = useState('');
   const [editing, setEditing] = useState<ApiDefinition>();
   const [naming, setNaming] = useState<'new' | 'rename'>();
   const [name, setName] = useState('');
   const [all, setAll] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
   const change = (fn: (c: NonNullable<typeof collection>) => void) =>
     app.update((w) => {
       const c = w.collections.find((c) => c.id === collection?.id);
       if (c) fn(c);
     });
   const selected = collection?.apis.filter((a) => a.selected).length || 0;
+  const filteredCollections = ws.collections.filter((c) =>
+    c.name.toLowerCase().includes(collectionQuery.trim().toLowerCase()),
+  );
+
   return (
     <>
       <div className="page-heading">
         <div>
           <div className="eyebrow">YOUR WORKSPACE</div>
           <h1>
-            Load Test Set
+            Collections
             <span className="heading-dot" />
           </h1>
           <p>Organize your APIs. Configure the load. Find your limits.</p>
         </div>
-        <Button
-          variant="primary"
-          onClick={() => {
-            setName('');
-            setNaming('new');
-          }}
-        >
-          <FiPlus />
-          New collection
-        </Button>
       </div>
       <ResizableColumns
         collections={
@@ -73,8 +72,17 @@ export function Collections() {
                 <FiPlus />
               </IconButton>
             </div>
+            <div className="search collection-search">
+              <FiSearch />
+              <input
+                aria-label="Search collections"
+                value={collectionQuery}
+                onChange={(event) => setCollectionQuery(event.target.value)}
+                placeholder="Search collections…"
+              />
+            </div>
             <div className="collection-items">
-              {ws.collections.map((c) => (
+              {filteredCollections.map((c) => (
                 <button
                   key={c.id}
                   className={`collection-item ${collection?.id === c.id ? 'selected' : ''}`}
@@ -88,6 +96,9 @@ export function Collections() {
                   <FiArrowRight className="item-arrow" />
                 </button>
               ))}
+              {filteredCollections.length === 0 && (
+                <p className="collection-search-empty">No collections found.</p>
+              )}
             </div>
           </aside>
         }
@@ -124,10 +135,10 @@ export function Collections() {
               </div>
               <div className="search">
                 <FiSearch />
-                <input
+                <VariableInput
                   aria-label="Search APIs"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onValueChange={(value) => setQuery(value)}
                   placeholder="Search APIs in this collection…"
                 />
                 <kbd>API</kbd>
@@ -430,12 +441,12 @@ export function Collections() {
             }}
           >
             <Field label="Collection name">
-              <input
+              <VariableInput
                 autoFocus
                 required
                 maxLength={200}
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onValueChange={(value) => setName(value)}
                 placeholder="e.g. Product Catalog"
               />
             </Field>

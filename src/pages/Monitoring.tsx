@@ -1,3 +1,4 @@
+import './Monitoring.css';
 import { FiActivity, FiCpu, FiServer, FiZap } from 'react-icons/fi';
 import { useApp } from '../hooks/useApp';
 import { bytes, number } from '../shared/format';

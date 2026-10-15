@@ -1,0 +1,40 @@
+.app-shell {
+  --bg: #242424;
+  --sidebar: #292929;
+  --surface: #2d2d2d;
+  --surface-raised: #353535;
+  --surface-hover: #343434;
+  --input: #272727;
+  --border: #3d3d3d;
+  --text: #f3f3f5;
+  --muted: #a3a3ae;
+  --faint: #75757e;
+  --blue: #5c96ff;
+  --chart-grid: #414145;
+  --selected: #25416a;
+  --selected-border: #3c69a9;
+  --shadow: 0 15px 60px #0005;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  color-scheme: dark;
+}
+.app-shell[data-theme='light'] {
+  --bg: #f5f6f9;
+  --sidebar: #fff;
+  --surface: #fff;
+  --surface-raised: #f2f4f8;
+  --surface-hover: #f5f7fb;
+  --input: #fafbfe;
+  --border: #e3e6ee;
+  --text: #202534;
+  --muted: #778092;
+  --faint: #929aab;
+  --blue: #2768e9;
+  --chart-grid: #e9ecf3;
+  --selected: #edf3ff;
+  --selected-border: #c7d9ff;
+  --shadow: 0 15px 60px #1b29491a;
+  color-scheme: light;
+}

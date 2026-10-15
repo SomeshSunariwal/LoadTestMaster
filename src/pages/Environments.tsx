@@ -1,3 +1,5 @@
+import { VariableInput } from '../components/VariableInput';
+import './Environments.css';
 import { useState } from 'react';
 import {
   FiPlus,
@@ -35,16 +37,6 @@ export function Environments() {
           </h1>
           <p>Keep your variables in sync, from local to production.</p>
         </div>
-        <Button
-          variant="primary"
-          onClick={() => {
-            setName('');
-            setNaming('new');
-          }}
-        >
-          <FiPlus />
-          New environment
-        </Button>
       </div>
       <ResizableEnvironments
         environments={
@@ -53,13 +45,22 @@ export function Environments() {
               <h3>
                 Environments <span className="count">{ws.environments.length}</span>
               </h3>
+              <IconButton
+                label="New environment"
+                onClick={() => {
+                  setName('');
+                  setNaming('new');
+                }}
+              >
+                <FiPlus />
+              </IconButton>
             </div>
             <div className="search">
               <FiSearch />
-              <input
+              <VariableInput
                 aria-label="Search environments"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onValueChange={(value) => setQuery(value)}
                 placeholder="Search environments…"
               />
             </div>
@@ -129,6 +130,7 @@ export function Environments() {
               </div>
               <div className="variables-content">
                 <PairEditor
+                  environmentId={env.id}
                   scrollable
                   secret={!reveal}
                   items={env.variables}
@@ -178,12 +180,12 @@ export function Environments() {
             }}
           >
             <Field label="Environment name">
-              <input
+              <VariableInput
                 autoFocus
                 required
                 maxLength={100}
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onValueChange={(value) => setName(value)}
                 placeholder="e.g. Performance"
               />
             </Field>

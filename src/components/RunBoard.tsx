@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import './RunBoard.css';
+import { useMemo, useState } from 'react';
 import GridLayout, { useContainerWidth, type Layout } from 'react-grid-layout';
 import {
   FiActivity,
@@ -11,6 +12,7 @@ import {
   FiRotateCcw,
   FiUsers,
   FiZap,
+  FiFileText,
 } from 'react-icons/fi';
 import type { RunSnapshot } from '../shared/schema';
 import { number, bytes } from '../shared/format';
@@ -22,12 +24,15 @@ import {
   type WidgetId,
 } from '../shared/dashboardLayout';
 import { useLayoutPreference } from '../hooks/useLayoutPreference';
-import { Button, Method } from './ui';
+import { Button, IconButton, Method } from './ui';
+import { ApiLogsModal } from './ApiLogsModal';
 import { Distribution, RequestsChart, ResponseChart } from './Charts';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
 export function RunBoard({ run }: { run: RunSnapshot }) {
+  const [logsApiId, setLogsApiId] = useState<string>();
+  const logsEndpoint = run.endpoints.find((endpoint) => endpoint.id === logsApiId);
   const { width, containerRef, mounted } = useContainerWidth({ measureBeforeMount: true });
   const cols = width >= 900 ? 36 : width >= 500 ? 18 : 12;
   const key = String(cols);
@@ -211,6 +216,7 @@ export function RunBoard({ run }: { run: RunSnapshot }) {
                               <th>Avg (ms)</th>
                               <th>P95</th>
                               <th>Errors</th>
+                              <th>Logs</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -239,6 +245,14 @@ export function RunBoard({ run }: { run: RunSnapshot }) {
                                 <td className={e.errors ? 'text-red' : 'muted'}>
                                   {number(e.errors)}
                                 </td>
+                                <td>
+                                  <IconButton
+                                    label={`View logs for ${e.name}`}
+                                    onClick={() => setLogsApiId(e.id)}
+                                  >
+                                    <FiFileText />
+                                  </IconButton>
+                                </td>
                               </tr>
                             ))}
                           </tbody>
@@ -252,6 +266,14 @@ export function RunBoard({ run }: { run: RunSnapshot }) {
           </GridLayout>
         )}
       </div>
+      {logsEndpoint && (
+        <ApiLogsModal
+          key={`${run.id}:${logsEndpoint.id}`}
+          runId={run.id}
+          endpoint={logsEndpoint}
+          onClose={() => setLogsApiId(undefined)}
+        />
+      )}
     </section>
   );
 }

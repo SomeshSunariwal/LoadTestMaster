@@ -1,3 +1,4 @@
+import './Dashboard.css';
 import {
   FiActivity,
   FiArrowUpRight,
@@ -240,10 +241,6 @@ export function Dashboard() {
                     <FiGlobe />
                     HTTP
                   </Badge>
-                  <Badge tone="purple">
-                    <FiLayers />
-                    {run.environment}
-                  </Badge>
                   <Badge tone="neutral">
                     <FiClock />
                     {run.duration}s duration
@@ -251,6 +248,10 @@ export function Dashboard() {
                   <Badge tone="neutral">
                     <FiUsers />
                     {number(run.users)} users
+                  </Badge>
+                  <Badge tone="purple">
+                    <FiLayers />
+                    Environment: {run.environment}
                   </Badge>
                 </div>
               </div>
@@ -303,8 +304,7 @@ export function Dashboard() {
               </div>
             </div>
             <RunBoard run={run} />
-            <div className="dashboard-foot">
-            </div>
+            <div className="dashboard-foot"></div>
           </div>
         </>
       )}
