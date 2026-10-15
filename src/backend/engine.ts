@@ -53,24 +53,31 @@ export class LoadEngine {
   private archived: RunSnapshot[] = [];
   private inFlight = 0;
   private retention = 30;
+
   constructor(private onComplete: (run: RunSnapshot) => void = () => {}) {}
+
   get requestCount() {
     return this.inFlight;
   }
+
   get runs() {
     return [...this.active.values()].map((r) => structuredClone(r.snapshot)).concat(this.archived);
   }
+
   restore(runs: RunSnapshot[]) {
     this.archived = runs;
   }
+
   setRetention(count: number) {
     this.retention = count;
     this.archived = this.archived.slice(0, count);
   }
+
   remove(id: string) {
     if (this.active.has(id)) throw new Error('Stop the run before deleting it.');
     this.archived = this.archived.filter((r) => r.id !== id);
   }
+
   start(collection: Collection, environment: Environment, all: boolean) {
     if (this.active.size >= 4) throw new Error('Up to four concurrent runs are supported.');
     const apis = collection.apis.filter((a) => all || a.selected);
@@ -118,6 +125,7 @@ export class LoadEngine {
         count: 0,
       })),
     };
+
     const now = Date.now();
     const run: ActiveRun = {
       snapshot,
@@ -132,11 +140,13 @@ export class LoadEngine {
       lastTick: now,
       timer: undefined!,
     };
+
     this.active.set(snapshot.id, run);
     run.timer = setInterval(() => {
       this.tick(run);
       if (snapshot.elapsed >= duration) this.finish(run, 'completed');
     }, 1000);
+
     const rateSlots = new Map<string, number>();
     const worker = async (user: number) => {
       const completed = new Map<string, number>();
@@ -203,9 +213,11 @@ export class LoadEngine {
     });
     return snapshot.id;
   }
+
   private elapsed(r: ActiveRun) {
     return ((r.pausedAt || Date.now()) - r.started - r.pausedMs) / 1000;
   }
+
   private async request(
     run: ActiveRun,
     api: ApiDefinition,
@@ -274,6 +286,7 @@ export class LoadEngine {
     }
     s.distribution[bounds.findIndex((n) => ms <= n)]!.count++;
   }
+
   private tick(run: ActiveRun, recordPoint = true) {
     const s = run.snapshot;
     s.elapsed = Math.min(s.duration, this.elapsed(run));
@@ -306,6 +319,7 @@ export class LoadEngine {
       if (s.points.length > 600) s.points.splice(0, 1);
     }
   }
+
   control(id: string, action: 'pause' | 'resume' | 'stop') {
     const r = this.active.get(id);
     if (!r) throw new Error('This run is no longer active.');
@@ -322,6 +336,7 @@ export class LoadEngine {
       r.snapshot.status = 'running';
     }
   }
+
   private finish(r: ActiveRun, status: 'completed' | 'stopped') {
     this.tick(r, false);
     r.snapshot.status = status;
@@ -334,6 +349,7 @@ export class LoadEngine {
     this.archived = this.archived.slice(0, this.retention);
     this.onComplete(r.snapshot);
   }
+
   shutdown() {
     for (const r of this.active.values()) this.finish(r, 'stopped');
   }

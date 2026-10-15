@@ -18,6 +18,7 @@ import { Badge, Button, Empty, Field, IconButton, Modal, Select } from '../compo
 import { LoadConfigForm } from '../components/LoadConfigForm';
 import { ApiModal } from '../components/ApiModal';
 import { ResizableColumns } from '../components/ResizableColumns';
+
 export function Collections() {
   const app = useApp();
   const ws = app.state!.workspace;
@@ -28,19 +29,21 @@ export function Collections() {
   const [name, setName] = useState('');
   const [all, setAll] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
   const change = (fn: (c: NonNullable<typeof collection>) => void) =>
     app.update((w) => {
       const c = w.collections.find((c) => c.id === collection?.id);
       if (c) fn(c);
     });
   const selected = collection?.apis.filter((a) => a.selected).length || 0;
+
   return (
     <>
       <div className="page-heading">
         <div>
           <div className="eyebrow">YOUR WORKSPACE</div>
           <h1>
-            Load Test Set
+            Collections
             <span className="heading-dot" />
           </h1>
           <p>Organize your APIs. Configure the load. Find your limits.</p>

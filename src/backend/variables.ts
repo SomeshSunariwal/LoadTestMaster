@@ -4,6 +4,7 @@ export function variableResolver(environment: Environment) {
   const values = Object.fromEntries(
     environment.variables.filter((v) => v.enabled && v.key).map((v) => [v.key, v.value]),
   );
+
   const resolve = (input: string, stack: string[] = []): string =>
     input.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (_, key: string) => {
       if (!(key in values)) throw new Error(`Missing environment variable: ${key}`);
@@ -13,16 +14,21 @@ export function variableResolver(environment: Environment) {
     });
   return resolve;
 }
+
 export function prepareRequest(api: ApiDefinition, environment: Environment) {
   const resolve = variableResolver(environment);
   const url = new URL(resolve(api.url));
+
   if (!['http:', 'https:'].includes(url.protocol))
     throw new Error('Only HTTP and HTTPS endpoints are supported.');
+
   for (const p of api.params.filter((p) => p.enabled && p.key))
     url.searchParams.set(resolve(p.key), resolve(p.value));
+
   const headers = new Headers();
   for (const h of api.headers.filter((h) => h.enabled && h.key))
     headers.set(resolve(h.key), resolve(h.value));
+
   if (api.auth === 'bearer') headers.set('Authorization', `Bearer ${resolve(api.token)}`);
   if (api.auth === 'basic')
     headers.set(

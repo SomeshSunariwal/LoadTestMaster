@@ -17,6 +17,7 @@ export function useController() {
   const revision = useRef(0);
   const saveQueue = useRef<Promise<unknown>>(Promise.resolve());
   const polling = useRef(false);
+
   const refresh = useCallback(async () => {
     if (polling.current) return;
     polling.current = true;
@@ -33,16 +34,19 @@ export function useController() {
       polling.current = false;
     }
   }, []);
+
   useEffect(() => {
     void refresh();
     const timer = setInterval(() => void refresh(), 1000);
     return () => clearInterval(timer);
   }, [refresh]);
+
   useEffect(() => {
     if (!notice) return;
     const timer = setTimeout(() => setNotice(''), 3500);
     return () => clearTimeout(timer);
   }, [notice]);
+
   const update = useCallback((fn: (workspace: Workspace) => void) => {
     if (!local.current) return;
     const next = structuredClone(local.current);
@@ -52,6 +56,7 @@ export function useController() {
     saving.current = true;
     setState((s) => (s ? { ...s, workspace: next } : s));
   }, []);
+
   const save = useCallback(async (message = 'Changes saved') => {
     if (!local.current) return;
     const input = structuredClone(local.current);
@@ -75,6 +80,7 @@ export function useController() {
       setBusy(false);
     }
   }, []);
+
   const perform = useCallback(
     async (fn: () => Promise<unknown>) => {
       setBusy(true);
@@ -89,10 +95,12 @@ export function useController() {
     },
     [refresh],
   );
+
   const openRun = useCallback((id: string) => {
     setOpenRunIds((open) => new Set(open).add(id));
     setRunId(id);
   }, []);
+
   const closeRun = useCallback(
     (id: string) => {
       const visibleRuns = (state?.runs ?? []).filter((run) => openRunIds.has(run.id));
@@ -116,6 +124,7 @@ export function useController() {
     },
     [state?.runs, openRunIds],
   );
+
   const start = useCallback(
     (all = false) =>
       perform(async () => {
@@ -126,6 +135,7 @@ export function useController() {
       }),
     [collectionId, perform, save, openRun],
   );
+
   return {
     state,
     page,
@@ -149,4 +159,5 @@ export function useController() {
     dirty: saving.current,
   };
 }
+
 export type AppController = ReturnType<typeof useController>;

@@ -5,9 +5,13 @@ import { seedWorkspace } from '../shared/defaults';
 
 export class Storage {
   workspace!: Workspace;
+
   history: RunSnapshot[] = [];
+
   private queue: Promise<void> = Promise.resolve();
+
   constructor(private directory: string) {}
+
   async init() {
     await mkdir(this.directory, { recursive: true });
     try {
@@ -37,6 +41,7 @@ export class Storage {
     }
     await this.saveWorkspace(this.workspace);
   }
+
   private write(name: string, data: unknown) {
     const work = this.queue
       .catch(() => {})
@@ -48,12 +53,14 @@ export class Storage {
     this.queue = work;
     return work;
   }
+
   async saveWorkspace(input: Workspace) {
     const next = workspaceSchema.parse(input);
     await this.write('workspace.json', next);
     this.workspace = next;
     return next;
   }
+
   async saveHistory(history: RunSnapshot[]) {
     this.history = history.slice(0, this.workspace.retention);
     await this.write('history.json', this.history);

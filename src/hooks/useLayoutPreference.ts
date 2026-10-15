@@ -11,6 +11,7 @@ export function useLayoutPreference<T>(key: string, schema: ZodType<T>, initial:
       return initial;
     }
   });
+
   const save = useCallback(
     (next: T) => {
       const parsed = schema.parse(next);
@@ -23,5 +24,6 @@ export function useLayoutPreference<T>(key: string, schema: ZodType<T>, initial:
     },
     [key, schema],
   );
+
   return [value, save] as const;
 }

@@ -1,5 +1,6 @@
 import type { RPCSchema } from 'electrobun/view';
 import type { AppState, StartInput, Workspace } from './schema';
+
 export type AppRPC = {
   bun: RPCSchema<{
     requests: {
