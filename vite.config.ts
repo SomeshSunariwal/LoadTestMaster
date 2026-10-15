@@ -3,9 +3,12 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'node:path';
 import { electrobunViteAliases } from './.hutch/devkit/api/config/electrobun-vite.ts';
+
 export default defineConfig(() => {
+  
   const devkit = resolve('.hutch/devkit');
   const aliases = electrobunViteAliases(devkit);
+
   return {
     base: './',
     plugins: [react(), tailwindcss()],
@@ -23,4 +26,5 @@ export default defineConfig(() => {
     },
     build: { outDir: 'dist', chunkSizeWarningLimit: 800 },
   };
+
 });
