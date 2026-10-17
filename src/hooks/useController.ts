@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { client } from '../apis/client';
 import type { AppState, Page, Workspace } from '../shared/schema';
+import { LIVE_UPDATE_MS } from '../shared/timing';
 
 export function useController() {
   const [state, setState] = useState<AppState>();
   const [page, setPage] = useState<Page>('dashboard');
-  const [collectionId, setCollectionId] = useState('ecommerce');
+  const [collectionId, setCollectionId] = useState('');
   const [runId, setRunId] = useState<string>();
   // Dashboard tabs belong to this session; loading saved history must not open them.
   const [openRunIds, setOpenRunIds] = useState<Set<string>>(() => new Set());
@@ -27,6 +28,11 @@ export function useController() {
       if (!saving.current && requestedRevision === revision.current) {
         local.current = next.workspace;
         setState(next);
+        setCollectionId((current) =>
+          next.workspace.collections.some((collection) => collection.id === current)
+            ? current
+            : (next.workspace.collections[0]?.id ?? ''),
+        );
       } else setState((previous) => (previous ? { ...next, workspace: previous.workspace } : next));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not connect to the backend.');
@@ -37,7 +43,7 @@ export function useController() {
 
   useEffect(() => {
     void refresh();
-    const timer = setInterval(() => void refresh(), 1000);
+    const timer = setInterval(() => void refresh(), LIVE_UPDATE_MS);
     return () => clearInterval(timer);
   }, [refresh]);
 

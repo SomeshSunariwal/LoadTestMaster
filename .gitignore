@@ -7,3 +7,4 @@ artifacts/
 coverage/
 *.log
 docs/
+.cottontail-tmp

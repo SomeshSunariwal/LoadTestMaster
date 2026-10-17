@@ -232,13 +232,11 @@
   outline: none;
 }
 .field-tooltip {
-  display: none;
-  position: absolute;
-  left: -8px;
-  bottom: calc(100% + 8px);
   z-index: 100;
   width: max-content;
-  max-width: min(250px, 70vw);
+  max-width: min(280px, calc(100vw - 24px));
+  max-height: var(--radix-popover-content-available-height);
+  overflow: auto;
   padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -249,11 +247,8 @@
   font-weight: 400;
   line-height: 1.5;
   white-space: normal;
+  overflow-wrap: anywhere;
   pointer-events: none;
-}
-.field-tooltip-trigger:hover .field-tooltip,
-.field-tooltip-trigger:focus-visible .field-tooltip {
-  display: block;
 }
 .toggle-label .field-tooltip-trigger {
   margin-left: -4px;

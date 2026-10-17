@@ -303,6 +303,11 @@ export function Collections() {
                         })
                       }
                     >
+                      <option value="" disabled>
+                        {ws.environments.length
+                          ? 'Select an environment'
+                          : 'Create an environment first'}
+                      </option>
                       {ws.environments.map((env) => (
                         <option key={env.id} value={env.id}>
                           {env.name}
@@ -345,15 +350,15 @@ export function Collections() {
                     })
                   }
                 />
-                <div className="config-section helper muted">
-                  Up to 1,000 users · 200 in-flight requests across all runs. Parallel requests
-                  multiply each API’s iteration.
-                </div>
               </div>
               <div className="configuration-footer">
                 <Button
                   variant="primary"
-                  disabled={app.busy || !(all ? collection.apis.length : selected)}
+                  disabled={
+                    app.busy ||
+                    !ws.environments.some((env) => env.id === collection.environmentId) ||
+                    !(all ? collection.apis.length : selected)
+                  }
                   onClick={() => {
                     app.setCollectionId(collection.id);
                     void app.start(all);

@@ -6,20 +6,24 @@ import { workspaceSchema, type StartInput, type Workspace } from '../shared/sche
 import { LoadEngine } from './engine';
 import { Storage } from './storage';
 import { runCsv } from '../shared/reports';
+import { LIVE_UPDATE_MS } from '../shared/timing';
 
 export async function createService(directory: string) {
   const storage = new Storage(directory);
   await storage.init();
   let persistenceError = '';
 
-  const engine = new LoadEngine(() => {
-    void storage
-      .saveHistory(engine.runs.filter((r) => !['running', 'paused'].includes(r.status)))
-      .catch((e) => {
-        persistenceError = String(e);
-        console.error('History persistence failed', e);
-      });
-  }, join(directory, 'logs'));
+  const engine = new LoadEngine(
+    () => {
+      void storage
+        .saveHistory(engine.runs.filter((r) => !['running', 'paused'].includes(r.status)))
+        .catch((e) => {
+          persistenceError = String(e);
+          console.error('History persistence failed', e);
+        });
+    },
+    join(directory, 'logs'),
+  );
 
   engine.restore(storage.history);
   engine.setRetention(storage.workspace.retention);
@@ -39,8 +43,9 @@ export async function createService(directory: string) {
         Object.values(p.times).reduce((a, b) => a + b, 0);
     });
     cpu = total ? 100 * (1 - idle / total) : 0;
+    engine.setCpuUtilization(cpu);
     previous = current;
-  }, 1000);
+  }, LIVE_UPDATE_MS);
 
   return {
     state: () => {
@@ -76,7 +81,9 @@ export async function createService(directory: string) {
     },
 
     readLogChunk: (input: { runId: string; name: string; offset: number }) => {
-      const value = z.object({ runId: z.string(), name: z.string(), offset: z.number() }).parse(input);
+      const value = z
+        .object({ runId: z.string(), name: z.string(), offset: z.number() })
+        .parse(input);
       return engine.readLogChunk(value.runId, value.name, value.offset);
     },
 

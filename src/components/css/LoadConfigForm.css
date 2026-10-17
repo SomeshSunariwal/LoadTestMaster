@@ -18,3 +18,57 @@
 .config-section .form-grid {
   gap: 13px 11px;
 }
+.load-mode-switch {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--input);
+}
+.load-mode-switch > button {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.load-mode-switch > button[aria-pressed='true'] {
+  background: var(--selected);
+  border-color: var(--selected-border);
+  color: var(--text);
+}
+.load-mode-switch > button > svg {
+  font-size: 12px;
+}
+.target-tps-field {
+  margin-bottom: 13px;
+}
+.load-advanced {
+  padding: 16px 0;
+}
+.load-advanced > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 10px;
+  cursor: pointer;
+}
+.load-advanced > summary::-webkit-details-marker {
+  display: none;
+}
+.load-advanced[open] > summary > svg {
+  transform: rotate(180deg);
+}
+.load-advanced > .form-grid {
+  margin-top: 13px;
+}

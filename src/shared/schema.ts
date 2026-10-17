@@ -9,12 +9,20 @@ export const pairSchema = z.object({
 
 export const configSchema = z
   .object({
+    loadMode: z.enum(['users', 'tps']).default('users'),
+    targetTps: z.number().min(1).max(100000).default(100),
+    tpsParallel: z.boolean().default(false),
     users: z.number().int().min(1).max(1000),
     duration: z.number().min(1).max(86400),
     rampUp: z.number().min(0).max(86400),
-    iterations: z.number().int().min(-1).max(1000000).refine((value) => value !== 0, {
-      message: 'Use -1 for unlimited iterations, or enter a positive number.',
-    }),
+    iterations: z
+      .number()
+      .int()
+      .min(-1)
+      .max(1000000)
+      .refine((value) => value !== 0, {
+        message: 'Use -1 for unlimited iterations, or enter a positive number.',
+      }),
     timeout: z.number().min(1).max(300),
     delay: z.number().min(0).max(60000),
     parallel: z.number().int().min(1).max(20),
@@ -23,7 +31,7 @@ export const configSchema = z
     thinkMin: z.number().min(0).max(60000),
     thinkMax: z.number().min(0).max(60000),
   })
-  .refine((c) => !c.thinkTime || c.thinkMax >= c.thinkMin, {
+  .refine((c) => c.loadMode === 'tps' || !c.thinkTime || c.thinkMax >= c.thinkMin, {
     message: 'Maximum think time must be at least the minimum.',
     path: ['thinkMax'],
   });
@@ -121,7 +129,13 @@ export interface RunLogFileInfo {
 
 export interface Point {
   second: number;
+  timestamp?: number;
+  spanStart?: number;
+  samples?: number;
+  outstandingRequests?: number;
+  cpu?: number;
   rps: number;
+  startRps?: number;
   users: number;
   avg: number;
   p95: number;
@@ -146,6 +160,10 @@ export interface RunSnapshot {
   p95: number;
   p99: number;
   rps: number;
+  loadMode?: 'users' | 'tps' | 'mixed';
+  targetTps?: number;
+  startedRequests?: number;
+  startRps?: number;
   points: Point[];
   endpoints: EndpointStats[];
   distribution: { range: string; count: number }[];

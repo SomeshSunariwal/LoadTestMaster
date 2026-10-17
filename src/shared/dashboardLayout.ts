@@ -5,11 +5,15 @@ export const widgetIds = [
   ...metricIds,
   'requests-chart',
   'response-chart',
-  'breakdown',
+  'outstanding-chart',
+  'cpu-chart',
   'distribution',
+  'breakdown',
 ] as const;
 export type WidgetId = (typeof widgetIds)[number];
-export const graphIds: readonly WidgetId[] = ['requests-chart', 'response-chart', 'distribution'];
+export const graphIds: readonly WidgetId[] = [
+  'requests-chart', 'response-chart', 'outstanding-chart', 'cpu-chart', 'distribution',
+];
 export const widgetLayoutSchema = z.object({
   i: z.enum(widgetIds),
   x: z.number().int().min(0),
@@ -29,7 +33,10 @@ export function defaultDashboardLayout(cols: number): WidgetLayout[] {
   const metricsPerRow = cols / 6;
   const chartsStart = Math.ceil(metricIds.length / metricsPerRow) * 3;
   const wide = cols === 36;
-  const leftWidth = wide ? 20 : cols;
+  const graphWidth = wide ? cols / 2 : cols;
+  const reports: WidgetId[] = [
+    'requests-chart', 'response-chart', 'outstanding-chart', 'cpu-chart', 'distribution', 'breakdown',
+  ];
   return [
     ...metricIds.map((i, index) => ({
       i,
@@ -38,22 +45,13 @@ export function defaultDashboardLayout(cols: number): WidgetLayout[] {
       w: 6,
       h: 3,
     })),
-    { i: 'requests-chart', x: 0, y: chartsStart, w: leftWidth, h: 7 },
-    {
-      i: 'response-chart',
-      x: wide ? 20 : 0,
-      y: chartsStart + (wide ? 0 : 7),
-      w: wide ? 16 : cols,
+    ...reports.map((i, index) => ({
+      i,
+      x: wide ? (index % 2) * graphWidth : 0,
+      y: chartsStart + (wide ? Math.floor(index / 2) : index) * 7,
+      w: graphWidth,
       h: 7,
-    },
-    { i: 'breakdown', x: 0, y: chartsStart + (wide ? 7 : 14), w: leftWidth, h: 7 },
-    {
-      i: 'distribution',
-      x: wide ? 20 : 0,
-      y: chartsStart + (wide ? 7 : 21),
-      w: wide ? 16 : cols,
-      h: 7,
-    },
+    })),
   ];
 }
 export function constrainDashboardLayout(items: readonly WidgetLayout[], cols: number) {

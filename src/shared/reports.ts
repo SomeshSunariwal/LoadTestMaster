@@ -14,6 +14,9 @@ export function runCsv(run: RunSnapshot) {
     ['Started', run.startedAt],
     ['Status', run.status],
     ['Elapsed seconds', run.elapsed],
+    ['Load mode', run.loadMode ?? 'users'],
+    ...(run.targetTps ? [['Target TPS', run.targetTps]] : []),
+    ...(run.startedRequests !== undefined ? [['Requests started', run.startedRequests]] : []),
     [],
     [
       'Method',

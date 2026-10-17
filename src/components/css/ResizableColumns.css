@@ -43,9 +43,6 @@
   max-height: none;
   display: block;
 }
-.resizable-collections .configuration-content > .config-section:last-child {
-  display: block;
-}
 .resizable-collections .configuration-footer .button {
   width: 100%;
   min-width: 0;

@@ -8,6 +8,11 @@ import type {
 } from '../shared/schema';
 import { prepareRequest } from './variables';
 import { RequestLogs, RunLogFiles, logHeaders, logPreviewLimit } from './requestLogs';
+import { configSchema } from '../shared/schema';
+import { tpsTimeAt, tpsVolumeAt } from './tps';
+import { LIVE_UPDATE_MS } from '../shared/timing';
+import { RequestRates } from './requestRates';
+import { compactChartHistory } from '../shared/chartHistory';
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 const bounds = [25, 50, 100, 200, 300, 500, 1000, 2000, 5000, 10000, 30000, Infinity];
@@ -45,8 +50,7 @@ interface ActiveRun {
   pausedAt: number;
   pausedMs: number;
   started: number;
-  lastRequests: number;
-  lastTick: number;
+  rates: RequestRates;
   timer: ReturnType<typeof setInterval>;
 }
 
@@ -83,6 +87,11 @@ export class LoadEngine {
   private archived: RunSnapshot[] = [];
   private inFlight = 0;
   private retention = 30;
+  private cpuUtilization?: number;
+
+  setCpuUtilization(value: number) {
+    this.cpuUtilization = Math.max(0, Math.min(100, value));
+  }
 
   constructor(
     private onComplete: (run: RunSnapshot) => void = () => {},
@@ -117,13 +126,27 @@ export class LoadEngine {
 
   start(collection: Collection, environment: Environment, all: boolean) {
     if (this.active.size >= 4) throw new Error('Up to four concurrent runs are supported.');
-    const apis = collection.apis.filter((a) => all || a.selected);
+    collection = { ...collection, config: configSchema.parse(collection.config) };
+    const apis = collection.apis
+      .filter((a) => all || a.selected)
+      .map((api) => ({
+        ...api,
+        config: configSchema.parse(api.config),
+      }));
     if (!apis.length) throw new Error('Select at least one API to run.');
-    if (collection.config.thinkMax < collection.config.thinkMin)
-      throw new Error('Maximum think time must be at least the minimum.');
     const prepared = new Map(apis.map((api) => [api.id, prepareRequest(api, environment)]));
     const configs = apis.map((api) => (api.useGlobal ? collection.config : api.config));
-    const users = Math.max(...configs.map((c) => c.users));
+    const userApis = apis.filter((_, index) => configs[index]!.loadMode === 'users');
+    const users = Math.max(0, ...configs.filter((c) => c.loadMode === 'users').map((c) => c.users));
+    const tpsGroups = new Map<string, { config: LoadConfig; apis: ApiDefinition[] }>();
+    for (const api of apis) {
+      const config = api.useGlobal ? collection.config : api.config;
+      if (config.loadMode !== 'tps') continue;
+      const key = api.useGlobal ? 'global' : api.id;
+      const group = tpsGroups.get(key) ?? { config, apis: [] };
+      group.apis.push(api);
+      tpsGroups.set(key, group);
+    }
     const duration = collection.config.duration;
     const snapshot: RunSnapshot = {
       id: crypto.randomUUID(),
@@ -143,6 +166,10 @@ export class LoadEngine {
       p95: 0,
       p99: 0,
       rps: 0,
+      loadMode: tpsGroups.size ? (userApis.length ? 'mixed' : 'tps') : 'users',
+      targetTps: [...tpsGroups.values()].reduce((sum, group) => sum + group.config.targetTps, 0),
+      startedRequests: 0,
+      startRps: 0,
       points: [],
       endpoints: apis.map((a) => ({
         id: a.id,
@@ -173,8 +200,7 @@ export class LoadEngine {
       pausedAt: 0,
       pausedMs: 0,
       started: now,
-      lastRequests: 0,
-      lastTick: now,
+      rates: new RequestRates(),
       timer: undefined!,
     };
 
@@ -182,7 +208,7 @@ export class LoadEngine {
     run.timer = setInterval(() => {
       this.tick(run);
       if (snapshot.elapsed >= duration) this.finish(run, 'completed');
-    }, 1000);
+    }, LIVE_UPDATE_MS);
 
     const rateSlots = new Map<string, number>();
     const worker = async (user: number) => {
@@ -193,7 +219,7 @@ export class LoadEngine {
           continue;
         }
         let eligible = false;
-        for (const api of apis) {
+        for (const api of userApis) {
           const c = api.useGlobal ? collection.config : api.config;
           if (
             user >= c.users ||
@@ -210,7 +236,7 @@ export class LoadEngine {
               // pause never accumulates rate credits that could produce a burst.
               const rateKey = api.useGlobal ? 'global' : api.id;
               while (this.active.has(snapshot.id)) {
-                if (this.inFlight >= 200 || snapshot.status === 'paused') {
+                if (snapshot.status === 'paused') {
                   await sleep(10);
                   continue;
                 }
@@ -245,7 +271,13 @@ export class LoadEngine {
       }
       run.workers.delete(user);
     };
-    void Promise.all(Array.from({ length: users }, (_, i) => worker(i))).then(() => {
+    const jobs = [
+      ...Array.from({ length: users }, (_, i) => worker(i)),
+      ...[...tpsGroups.values()].map((group) =>
+        this.runTargetTps(run, group.apis, group.config, prepared),
+      ),
+    ];
+    void Promise.all(jobs).then(() => {
       if (this.active.has(snapshot.id)) this.finish(run, 'completed');
     });
     return snapshot.id;
@@ -253,6 +285,52 @@ export class LoadEngine {
 
   private elapsed(r: ActiveRun) {
     return ((r.pausedAt || Date.now()) - r.started - r.pausedMs) / 1000;
+  }
+
+  private async runTargetTps(
+    run: ActiveRun,
+    apis: ApiDefinition[],
+    config: LoadConfig,
+    prepared: Map<string, ReturnType<typeof prepareRequest>>,
+  ) {
+    // In parallel mode, start one second's target volume together. Requests
+    // from earlier groups may still be in flight; each request has its own timeout.
+    const batchSize = config.tpsParallel ? Math.ceil(config.targetTps) : 1;
+    const duration = Math.min(config.duration, run.snapshot.duration);
+    const pending = new Set<Promise<void>>();
+    let endpoint = 0;
+    // During ramp-up, accumulate a whole batch's worth of traffic before firing it.
+    let nextVolume = config.rampUp > 0 ? batchSize : 0;
+    while (this.active.has(run.snapshot.id)) {
+      if (run.snapshot.status === 'paused') {
+        await sleep(10);
+        continue;
+      }
+      const now = this.elapsed(run);
+      if (now >= duration) break;
+      const due = tpsTimeAt(nextVolume, config.targetTps, config.rampUp);
+      if (now < due) {
+        await sleep(Math.min(25, Math.max(1, (due - now) * 1000)));
+        continue;
+      }
+      // Discard missed slots after a long event-loop stall instead of producing
+      // an oversized catch-up burst.
+      // Pause time is excluded by elapsed(), so resuming never builds rate credits.
+      if (now - due > 0.025) {
+        nextVolume = Math.max(nextVolume, tpsVolumeAt(now, config.targetTps, config.rampUp));
+      }
+      for (let i = 0; i < batchSize; i++) {
+        const api = apis[endpoint++ % apis.length]!;
+        const task = this.request(run, api, config, prepared.get(api.id)!);
+        pending.add(task);
+        void task.then(
+          () => pending.delete(task),
+          () => pending.delete(task),
+        );
+      }
+      nextVolume += batchSize;
+    }
+    await Promise.all(pending);
   }
 
   private async request(
@@ -264,6 +342,8 @@ export class LoadEngine {
     const controller = new AbortController();
     run.controllers.add(controller);
     this.inFlight++;
+    run.snapshot.startedRequests = (run.snapshot.startedRequests ?? 0) + 1;
+    run.rates.record('starts');
     const timeout = setTimeout(() => controller.abort(), c.timeout * 1000);
     const start = performance.now();
     const log: ApiRequestLog = {
@@ -348,6 +428,7 @@ export class LoadEngine {
     const ms = performance.now() - start,
       s = run.snapshot;
     s.requests++;
+    if (s.status === 'running') run.rates.record('completions');
     s.bytes += size;
     if (failed) s.errors++;
     run.histogram.add(ms);
@@ -365,13 +446,9 @@ export class LoadEngine {
   private tick(run: ActiveRun, recordPoint = true) {
     const s = run.snapshot;
     s.elapsed = Math.min(s.duration, this.elapsed(run));
-    const now = Date.now();
-    s.rps =
-      s.status === 'paused'
-        ? 0
-        : (s.requests - run.lastRequests) / Math.max(0.001, (now - run.lastTick) / 1000);
-    run.lastTick = now;
-    run.lastRequests = s.requests;
+    const rates = run.rates.read();
+    s.rps = s.status === 'paused' ? 0 : rates.completions;
+    s.startRps = s.status === 'paused' ? 0 : rates.starts;
     s.avg = run.histogram.avg;
     s.p95 = run.histogram.percentile(0.95);
     s.p99 = run.histogram.percentile(0.99);
@@ -383,15 +460,29 @@ export class LoadEngine {
       e.p99 = h.percentile(0.99);
     }
     if (s.status === 'running' && recordPoint) {
-      s.points.push({
-        second: Math.round(s.elapsed),
+      const pointSecond = Math.round(s.elapsed * 10) / 10;
+      const second = Math.floor(pointSecond);
+      const last = s.points.at(-1);
+      const sameSecond = last && Math.floor(last.second) === second;
+      const point = {
+        second: pointSecond,
+        timestamp: Date.now(),
+        outstandingRequests: run.controllers.size,
+        cpu: this.cpuUtilization,
         rps: s.rps,
+        startRps: s.startRps,
         users: s.activeUsers,
         avg: s.avg,
         p95: s.p95,
         p99: s.p99,
-      });
-      if (s.points.length > 600) s.points.splice(0, 1);
+      };
+      // Refresh the current second, preserving the full run in compact older buckets.
+      if (sameSecond)
+        s.points[s.points.length - 1] = point;
+      else {
+        s.points.push(point);
+        s.points = compactChartHistory(s.points, s.elapsed);
+      }
     }
   }
 
@@ -402,21 +493,24 @@ export class LoadEngine {
     if (action === 'pause' && r.snapshot.status === 'running') {
       r.pausedAt = Date.now();
       r.snapshot.status = 'paused';
+      r.rates.clear();
+      r.snapshot.rps = 0;
+      r.snapshot.startRps = 0;
     }
     if (action === 'resume' && r.snapshot.status === 'paused') {
       r.pausedMs += Date.now() - r.pausedAt;
       r.pausedAt = 0;
-      r.lastTick = Date.now();
-      r.lastRequests = r.snapshot.requests;
+      r.rates.clear();
       r.snapshot.status = 'running';
     }
   }
 
   private finish(r: ActiveRun, status: 'completed' | 'stopped') {
-    this.tick(r, false);
+    this.tick(r);
     r.snapshot.status = status;
     r.snapshot.activeUsers = 0;
     r.snapshot.rps = r.snapshot.requests / Math.max(0.001, r.snapshot.elapsed);
+    r.snapshot.startRps = (r.snapshot.startedRequests ?? 0) / Math.max(0.001, r.snapshot.elapsed);
     clearInterval(r.timer);
     this.active.delete(r.snapshot.id);
     for (const c of r.controllers) c.abort();

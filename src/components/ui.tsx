@@ -5,9 +5,11 @@ import type {
   SelectHTMLAttributes,
   ReactNode,
 } from 'react';
+import { useId, useState } from 'react';
 import { FiCheck, FiX, FiInfo, FiChevronDown } from 'react-icons/fi';
 import { GoQuestion } from 'react-icons/go';
 import * as Dialog from '@radix-ui/react-dialog';
+import * as Popover from '@radix-ui/react-popover';
 import { useApp } from '../hooks/useApp';
 export function Button({
   children,
@@ -66,20 +68,69 @@ export function Select({ children, ...props }: SelectHTMLAttributes<HTMLSelectEl
 }
 
 function Tooltip({ text }: { text: string }) {
+  const { state } = useApp();
+  const id = useId();
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const open = (hovered || focused) && !dismissed;
   return (
-    <span
-      className="field-tooltip-trigger"
-      tabIndex={0}
-      role="img"
-      aria-label={text}
-      onMouseDown={(event) => event.preventDefault()}
-      onClick={(event) => event.preventDefault()}
+    <Popover.Root
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) setDismissed(true);
+      }}
     >
-      <GoQuestion aria-hidden="true" />
-      <span className="field-tooltip" role="tooltip">
-        {text}
-      </span>
-    </span>
+      <Popover.Anchor asChild>
+        <span
+          className="field-tooltip-trigger"
+          tabIndex={0}
+          role="img"
+          aria-label={text}
+          aria-describedby={open ? id : undefined}
+          onMouseEnter={() => {
+            setHovered(true);
+            setDismissed(false);
+          }}
+          onMouseLeave={() => setHovered(false)}
+          onFocus={() => {
+            setFocused(true);
+            setDismissed(false);
+          }}
+          onBlur={() => setFocused(false)}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={(event) => event.preventDefault()}
+          onKeyDown={(event) => {
+            if (open && event.key === 'Escape') {
+              event.preventDefault();
+              event.stopPropagation();
+              setDismissed(true);
+            }
+          }}
+        >
+          <GoQuestion aria-hidden="true" />
+        </span>
+      </Popover.Anchor>
+      <Popover.Portal>
+        <div className="app-shell modal-theme" data-theme={state?.workspace.theme || 'dark'}>
+          <Popover.Content
+            id={id}
+            className="field-tooltip"
+            role="tooltip"
+            aria-describedby={undefined}
+            side="top"
+            align="center"
+            sideOffset={8}
+            collisionPadding={12}
+            hideWhenDetached
+            onOpenAutoFocus={(event) => event.preventDefault()}
+            onCloseAutoFocus={(event) => event.preventDefault()}
+          >
+            {text}
+          </Popover.Content>
+        </div>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 export function NumberField({
