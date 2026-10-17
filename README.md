@@ -49,7 +49,7 @@ Then open [http://127.0.0.1:5173](http://127.0.0.1:5173). The backend listens on
 
 ### 2. Configure an environment
 
-Open **Environments**, choose an existing environment or create one, and set `baseUrl` to your API server's address. Add other variables such as `authToken` or `productId` as needed.
+On a new installation, LoadMaster starts with an empty workspace: no environments, collections, APIs, or test history. Open **Environments**, create your first environment, and add a `baseUrl` variable with your API server's address. Add other variables such as `authToken` or `productId` as needed. New environments start with no variables.
 
 Use variables in request fields with double braces:
 
@@ -58,11 +58,11 @@ URL:          {{baseUrl}}/api/products/{{productId}}
 Bearer token: {{authToken}}
 ```
 
-The Local environment starts with `http://localhost:3000`. Staging and Production contain placeholder `example.com` addresses. Start your own API server or replace these values; LoadMaster does not start a demo API server. The included collections are editable examples and require matching endpoints on your server.
+Start your own API server and use its address. LoadMaster does not include sample collections, predefined environments, or a demo API server. The request examples above are documentation only.
 
 ### 3. Create a collection and add APIs
 
-Open **Collections** (the Load Test Set screen), select or create a collection, and choose its environment. Add each API with a name, HTTP method, and URL.
+Open **Collections**, create a collection, and choose its environment. Add each API with a name, HTTP method, and URL. New APIs start with an empty URL, headers, parameters, and body.
 
 Configure query parameters, headers, authentication, and the request body as needed. For example, a JSON POST body can contain environment variables:
 
@@ -79,19 +79,35 @@ For GraphQL, supply the request payload and headers expected by your server. Con
 
 Set the collection's load configuration, then save it. APIs inherit collection settings as **Global**. To apply individual overrides, turn off **Use collection configuration** in the API editor; the API table then shows **Own API**.
 
-| Setting                 | Meaning                                                                          |
-| ----------------------- | -------------------------------------------------------------------------------- |
-| Virtual users           | Number of simulated users, up to 1,000                                           |
-| Ramp up                 | Time in seconds to bring users online                                            |
-| Duration                | Maximum test duration in seconds; finite iterations may finish earlier           |
-| Iterations per user     | Request batches per user for each API; `-1` repeats until the duration ends      |
-| Timeout                 | Maximum wait for an individual response, in seconds                              |
-| Request delay           | Fixed pause after each request batch, in milliseconds                            |
-| Parallel requests / API | Requests each user sends simultaneously in a batch, from 1 to 20                 |
-| Rate limit              | Maximum request-start rate in requests per second; `0` disables the cap          |
-| Random think time       | Additional random pause between batches, within the configured millisecond range |
+Choose **User-based** to simulate users sending batches and waiting for responses. Choose **Target TPS** to schedule request starts at a chosen rate independently of response completion. Existing saved configurations keep User-based mode.
 
-The Global rate limit is shared by APIs using collection settings within a run. APIs with their own settings have separate rate limits. The engine caps total in-flight requests at **200 across all runs**.
+In Target TPS mode, enter the target, ramp-up time, duration, and timeout. One transaction means one HTTP request. The target is shared across APIs inheriting this configuration; requests are distributed evenly between them. APIs with their own configurations run with their own mode and target. The collection duration remains the overall run limit.
+
+Enable **Send parallel requests** to start one second of target traffic together. At 900 TPS with no ramp up, the app starts 900 requests concurrently, then schedules another 900 one second later even if earlier requests are still waiting. Each request still follows its own timeout. With the toggle off, requests are spaced individually. The app does not impose a fixed in-flight request cap; actual rates can still be affected by the computer, network, and target service. Missed starts after an event-loop stall are discarded instead of accumulated into a catch-up burst.
+
+Target TPS ignores the User-based settings for virtual users, iterations, request delay, per-user parallelism, rate limit, and random pauses. Those settings are preserved when switching modes. The dashboard shows the target, actual request starts per second, and completed requests per second.
+
+Live metrics and the request breakdown refresh every **100 ms**. Graphs refresh every **1 second**, with a final update when a run pauses or ends. Request rates use a rolling one-second window so faster refreshes do not inflate TPS for parallel batches. Recent history retains one-second samples; older history is compacted into 10-second, one-minute, and five-minute samples to preserve the full run while keeping dashboard updates small.
+
+The four time-based graphs have a linked **1m | 5m | 30m | 1H | 3H | 8H | All** selector, defaulting to **All**. Changing it on any of them updates all four for the selected run. Time windows follow the latest test time, or the end of a completed run. **All** covers the entire recorded run. Response time distribution always shows all requests and has no time selector. The request breakdown table and summary cards also show run totals. Older saved runs retain only the history originally recorded.
+
+Hover over any time-based graph to highlight the same timestamp and show its values across Requests per second, Response time, Outstanding Requests, and CPU Utilization.
+
+The dashboard arranges reports in three rows: Requests per second and Response time; Outstanding Requests and CPU Utilization; Response time distribution and Request breakdown. Outstanding Requests counts requests waiting for a response in the selected run. CPU Utilization measures the machine generating the load. Both series are saved with run history; older runs without these measurements show no recorded data. Reports stack vertically on smaller screens and remain movable and resizable.
+
+| Setting                      | Meaning                                                                                              |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Virtual users                | Number of simulated users, up to 1,000                                                               |
+| Ramp up                      | Time in seconds to bring users online                                                                |
+| Duration                     | Maximum test duration in seconds; finite iterations may finish earlier                               |
+| Iterations per user          | Request batches per user for each API; `-1` repeats until the duration ends                          |
+| Request timeout              | Maximum wait for an individual response, in milliseconds; `1000` ms is one second                   |
+| Request delay                | Fixed pause after each request batch, in milliseconds                                                |
+| Parallel requests / API      | Requests each user sends simultaneously in a batch, from 1 to 20                                     |
+| Rate limit                   | Maximum request-start rate in requests per second; `0` disables the cap                              |
+| Random pause between batches | Optional random pause added to Request delay to simulate pauses between user actions; off by default |
+
+The Global rate limit is shared by APIs using collection settings within a run. APIs with their own settings have separate rate limits. The engine does not impose a fixed cap on in-flight requests.
 
 ### 5. Run and inspect results
 
@@ -107,6 +123,8 @@ Up to **four tests** can run concurrently. Closing a Dashboard tab keeps its tes
 
 Collections, environments, settings, and retained test history are stored locally in `%APPDATA%\LoadMaster`. Development and packaged versions use the same data folder.
 
+The app loads an existing workspace on subsequent launches. Packaging includes the application code and UI; it does not copy your saved workspace, credentials, history, or logs into the distribution. Each new Windows user starts with an empty workspace and creates their own data.
+
 In **Settings**, use **Export workspace** to download a JSON backup or **Import workspace** to paste a backup and replace the current workspace. Backups include collections, environment variables, and settings. Test history and request log files are stored separately. History retention defaults to 30 runs and can be set from 1 to 100.
 
 ## Features
@@ -116,7 +134,7 @@ In **Settings**, use **Export workspace** to download a JSON backup or **Import 
 - **Request bodies:** JSON, XML, raw text, GraphQL payloads, and multipart forms with text fields and file uploads up to 512 KB per file, subject to the combined body-size limit.
 - **JSON editing:** Syntax highlighting, live validation, formatting, text wrapping, and synchronized Text and editable Tree views for nested objects and arrays.
 - **Reusable environments:** Nested `{{variable}}` references across URLs, parameters, headers, authentication, and bodies; autocomplete and highlighted references. Missing or circular references fail before a run starts.
-- **Flexible traffic:** Collection defaults, per-API overrides, virtual users, ramp up, duration, iterations, parallel requests, timeouts, rate limits, delays, and random think time.
+- **Flexible traffic:** User-based and Target TPS modes, collection defaults, per-API overrides, paced or parallel batch scheduling, ramp up, duration, virtual users, iterations, timeouts, rate limits, delays, and optional random pauses between batches.
 - **Response assertions:** Expected status codes and response-text checks to identify failed requests.
 - **Live results:** Requests per second, bytes per second, success/error rates, average latency, approximate P95/P99 latency, response-time distributions, and endpoint breakdowns. Percentiles use 5 ms histogram buckets.
 - **Concurrent testing:** Separate Dashboard tabs for up to four active tests, with pause, resume, and stop controls.

@@ -196,7 +196,7 @@ export function ApiModal({
             />
             {api.useGlobal ? (
               <p className="muted helper">
-                This API will inherit the collection’s virtual users, timing, and request settings.
+                This API will inherit the collection’s load mode, timing, and request settings.
               </p>
             ) : (
               <LoadConfigForm value={api.config} onChange={(v) => set('config', v)} />

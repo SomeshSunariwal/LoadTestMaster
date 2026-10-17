@@ -12,14 +12,14 @@ import {
   FiEyeOff,
 } from 'react-icons/fi';
 import { useApp } from '../hooks/useApp';
-import { pair, uid } from '../shared/defaults';
+import { uid } from '../shared/defaults';
 import { Button, Empty, Field, IconButton, Modal } from '../components/ui';
 import { PairEditor } from '../components/PairEditor';
 import { ResizableEnvironments } from '../components/ResizableEnvironments';
 export function Environments() {
   const app = useApp(),
     ws = app.state!.workspace;
-  const [id, setId] = useState('local'),
+  const [id, setId] = useState(''),
     [query, setQuery] = useState(''),
     [naming, setNaming] = useState<'new' | 'rename'>(),
     [name, setName] = useState(''),
@@ -170,7 +170,7 @@ export function Environments() {
                     id: next,
                     name: name.trim(),
                     color: '#a879ff',
-                    variables: [pair('baseUrl', 'http://localhost:3000')],
+                    variables: [],
                   });
                   setId(next);
                 } else w.environments.find((e) => e.id === env?.id)!.name = name.trim();

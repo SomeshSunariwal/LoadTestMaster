@@ -43,8 +43,8 @@ export function Monitoring() {
             icon: <FiZap />,
             title: 'Requests in flight',
             value: number(r.inFlight),
-            detail: '200 maximum across active tests',
-            progress: r.inFlight / 2,
+            detail: 'Across all active tests',
+            progress: undefined,
             tone: 'purple',
           },
         ].map((s) => (
@@ -53,9 +53,11 @@ export function Monitoring() {
             <h3>{s.title}</h3>
             <strong>{s.value}</strong>
             <p>{s.detail}</p>
-            <div className={`progress ${s.tone}`}>
-              <span style={{ width: `${s.progress}%` }} />
-            </div>
+            {s.progress !== undefined && (
+              <div className={`progress ${s.tone}`}>
+                <span style={{ width: `${s.progress}%` }} />
+              </div>
+            )}
           </section>
         ))}
       </div>
@@ -80,7 +82,7 @@ export function Monitoring() {
         </div>
         <div>
           <span>Metric refresh</span>
-          <strong>1 second</strong>
+          <strong>100 ms</strong>
         </div>
       </section>
     </>

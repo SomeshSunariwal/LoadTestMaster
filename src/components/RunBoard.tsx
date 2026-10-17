@@ -1,5 +1,5 @@
 import './css/RunBoard.css';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import GridLayout, { useContainerWidth, type Layout } from 'react-grid-layout';
 import {
   FiActivity,
@@ -26,11 +26,40 @@ import {
 import { useLayoutPreference } from '../hooks/useLayoutPreference';
 import { Button, IconButton, Method } from './ui';
 import { ApiLogsModal } from './ApiLogsModal';
-import { Distribution, RequestsChart, ResponseChart } from './Charts';
+import { ChartTimeContext } from './chartTimeContext';
+import { chartWindow, type ChartRange } from '../shared/chartHistory';
+import { CpuChart, Distribution, OutstandingRequestsChart, RequestsChart, ResponseChart } from './Charts';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
 export function RunBoard({ run }: { run: RunSnapshot }) {
+  const [range, setRange] = useState<ChartRange>('All');
+  const [zoom, setZoom] = useState<[number, number] | null>(null);
+  useEffect(() => setZoom(null), [run.id]);
+  const latestRun = useRef(run);
+  const [graphRun, setGraphRun] = useState(run);
+  useEffect(() => {
+    latestRun.current = run;
+  }, [run]);
+  useEffect(() => {
+    // Keep graphs on a one-second cadence; metrics and the table use live run data.
+    setGraphRun(latestRun.current);
+    if (run.status !== 'running') return;
+    const timer = setInterval(() => setGraphRun(latestRun.current), 1000);
+    return () => clearInterval(timer);
+  }, [run.id, run.status]);
+  const window = useMemo(() => chartWindow(graphRun, range, zoom), [graphRun, range, zoom]);
+  const chartTime = useMemo(
+    () => ({
+      range,
+      onChange: (next: ChartRange) => { setRange(next); setZoom(null); },
+      domain: zoom ?? window.domain,
+      zoomed: zoom !== null,
+      onZoom: setZoom,
+      onResetZoom: () => setZoom(null),
+    }),
+    [range, window.domain, zoom],
+  );
   const [logsApiId, setLogsApiId] = useState<string>();
   const logsEndpoint = run.endpoints.find((endpoint) => endpoint.id === logsApiId);
   const { width, containerRef, mounted } = useContainerWidth({ measureBeforeMount: true });
@@ -51,22 +80,25 @@ export function RunBoard({ run }: { run: RunSnapshot }) {
       [key]: next.map(({ i, x, y, w, h }) => ({ i: i as WidgetId, x, y, w, h })),
     });
   const success = run.requests ? 100 * (1 - run.errors / run.requests) : 0;
+  const tps = run.loadMode === 'tps';
   const metrics = [
     {
       id: 'users',
-      label: 'Virtual users',
-      value: number(run.activeUsers),
+      label: tps ? 'Target TPS' : 'Virtual users',
+      value: number(tps ? (run.targetTps ?? 0) : run.activeUsers),
       unit: '',
-      detail: `Configured: ${number(run.users)}`,
-      icon: <FiUsers />,
+      detail: tps
+        ? `Started: ${number(run.startRps ?? 0)} / sec`
+        : `Configured: ${number(run.users)}`,
+      icon: tps ? <FiZap /> : <FiUsers />,
       tone: 'green',
     },
     {
       id: 'rps',
-      label: 'Requests / sec',
+      label: tps ? 'Completed / sec' : 'Requests / sec',
       value: number(run.rps),
       unit: '',
-      detail: `Total requests: ${number(run.requests)}`,
+      detail: `Total completed: ${number(run.requests)}`,
       icon: <FiZap />,
       tone: 'blue',
     },
@@ -111,6 +143,8 @@ export function RunBoard({ run }: { run: RunSnapshot }) {
     ...Object.fromEntries(metrics.map((m) => [m.id, m.label])),
     'requests-chart': 'Requests per second',
     'response-chart': 'Response time',
+    'outstanding-chart': 'Outstanding Requests',
+    'cpu-chart': 'CPU Utilization',
     breakdown: 'Request breakdown',
     distribution: 'Response time distribution',
   } as Record<WidgetId, string>;
@@ -132,6 +166,7 @@ export function RunBoard({ run }: { run: RunSnapshot }) {
     );
   };
   return (
+    <ChartTimeContext.Provider value={chartTime}>
     <section className="run-board" aria-label="Adjustable dashboard">
       <div className="board-toolbar">
         <span>
@@ -192,18 +227,22 @@ export function RunBoard({ run }: { run: RunSnapshot }) {
                       </div>
                     </div>
                   ) : id === 'requests-chart' ? (
-                    <RequestsChart run={run} />
+                    <RequestsChart run={window.run} />
                   ) : id === 'response-chart' ? (
-                    <ResponseChart run={run} />
+                    <ResponseChart run={window.run} />
+                  ) : id === 'outstanding-chart' ? (
+                    <OutstandingRequestsChart run={window.run} />
+                  ) : id === 'cpu-chart' ? (
+                    <CpuChart run={window.run} />
                   ) : id === 'distribution' ? (
-                    <Distribution run={run} />
+                    <Distribution run={graphRun} />
                   ) : (
                     <section className="panel breakdown">
                       <div className="chart-title">
                         <h3>
                           Request breakdown <FiCheckCircle />
                         </h3>
-                        <span className="muted helper">{run.endpoints.length} endpoints</span>
+                        <span className="muted helper">All requests · {run.endpoints.length} endpoints</span>
                       </div>
                       <div className="table-scroll">
                         <table>
@@ -225,13 +264,10 @@ export function RunBoard({ run }: { run: RunSnapshot }) {
                                 <td>
                                   <Method method={e.method} />
                                 </td>
-                                <td title={e.lastError || e.url}>
+                                <td title={e.url}>
                                   <span className="endpoint-cell">
                                     {e.url.replace('{{baseUrl}}', '')}
                                   </span>
-                                  {e.lastError && (
-                                    <small className="error-detail">{e.lastError}</small>
-                                  )}
                                 </td>
                                 <td>{number(e.requests)}</td>
                                 <td className="text-green">
@@ -275,5 +311,6 @@ export function RunBoard({ run }: { run: RunSnapshot }) {
         />
       )}
     </section>
+    </ChartTimeContext.Provider>
   );
 }

@@ -229,7 +229,7 @@
 .board-widget .chart-panel {
   display: flex;
   flex-direction: column;
-  padding-bottom: 22px;
+  padding-bottom: 2px;
 }
 .board-widget .chart-title {
   min-height: 22px;

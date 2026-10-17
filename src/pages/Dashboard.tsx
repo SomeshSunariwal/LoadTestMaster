@@ -65,7 +65,8 @@ export function Dashboard() {
         if (!cancelled) setLogFiles(files);
       })
       .catch((error) => {
-        if (!cancelled) app.setError(error instanceof Error ? error.message : 'Could not list logs.');
+        if (!cancelled)
+          app.setError(error instanceof Error ? error.message : 'Could not list logs.');
       })
       .finally(() => {
         if (!cancelled) setLoadingLogFiles(false);
@@ -305,6 +306,21 @@ export function Dashboard() {
                     <FiClock />
                     {clock(run.elapsed)}
                   </Badge>
+                  <Badge tone="neutral">
+                    Started
+                    <time dateTime={run.startedAt}>
+                      {new Intl.DateTimeFormat(undefined, {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hourCycle: 'h23',
+                        timeZoneName: 'short',
+                      }).format(new Date(run.startedAt))}
+                    </time>
+                  </Badge>
                 </div>
                 <p>
                   {app.state!.workspace.collections.find((c) => c.id === run.collectionId)
@@ -320,9 +336,12 @@ export function Dashboard() {
                     {run.duration}s duration
                   </Badge>
                   <Badge tone="neutral">
-                    <FiUsers />
-                    {number(run.users)} users
+                    {run.loadMode === 'tps' ? <FiZap /> : <FiUsers />}
+                    {run.loadMode === 'tps'
+                      ? `${number(run.targetTps ?? 0)} target TPS`
+                      : `${number(run.users)} users`}
                   </Badge>
+                  {run.loadMode === 'mixed' && <Badge tone="neutral">Mixed load modes</Badge>}
                   <Badge tone="purple">
                     <FiLayers />
                     Environment: {run.environment}
@@ -330,17 +349,25 @@ export function Dashboard() {
                 </div>
               </div>
               <div className="actions">
-                {!['running', 'paused'].includes(run.status) && (
-                  logFiles.length > 1 ? (
+                {!['running', 'paused'].includes(run.status) &&
+                  (logFiles.length > 1 ? (
                     <details className="log-download-menu">
                       <summary className="button secondary" aria-busy={loadingLogFiles}>
                         <FiDownload />
                         Download Log
                         <FiChevronDown />
                       </summary>
-                      <div className="log-download-list" role="menu" aria-label="Download a log file">
+                      <div
+                        className="log-download-list"
+                        role="menu"
+                        aria-label="Download a log file"
+                      >
                         {logFiles.map((file) => (
-                          <button key={file.name} role="menuitem" onClick={() => downloadLog(file.name)}>
+                          <button
+                            key={file.name}
+                            role="menuitem"
+                            onClick={() => downloadLog(file.name)}
+                          >
                             <FiDownload />
                             {file.name}
                           </button>
@@ -350,14 +377,17 @@ export function Dashboard() {
                   ) : (
                     <Button
                       disabled={loadingLogFiles || logFiles.length === 0}
-                      title={logFiles.length === 0 ? 'No request logs were captured for this run.' : 'Download request log'}
+                      title={
+                        logFiles.length === 0
+                          ? 'No request logs were captured for this run.'
+                          : 'Download request log'
+                      }
                       onClick={() => logFiles[0] && downloadLog(logFiles[0].name)}
                     >
                       <FiDownload />
                       Download Log
                     </Button>
-                  )
-                )}
+                  ))}
                 {!['running', 'paused'].includes(run.status) && (
                   <Button title="Export endpoint results" onClick={downloadCsv}>
                     <FiDownload />
