@@ -8,4 +8,11 @@ export const ChartTimeContext = createContext<{
   zoomed: boolean;
   onZoom: (domain: [number, number]) => void;
   onResetZoom: () => void;
-}>({ range: 'All', onChange: () => {}, domain: [0, 1], zoomed: false, onZoom: () => {}, onResetZoom: () => {} });
+}>({
+  range: 'All',
+  onChange: () => {},
+  domain: [0, 1],
+  zoomed: false,
+  onZoom: () => {},
+  onResetZoom: () => {},
+});

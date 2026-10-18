@@ -28,6 +28,7 @@ export function PairEditor({
         <span />
       </div>
       <div className="pair-rows">
+        <div className="pair-items">
         {items.map((item, i) => (
           <div className="pair-row" key={item.id}>
             <input
@@ -55,14 +56,21 @@ export function PairEditor({
               label={`Delete ${item.key || 'row'}`}
               onClick={() => onChange(items.filter((p) => p.id !== item.id))}
             >
-              <FiTrash2 />
+              <FiTrash2 className="delete-icon" />
             </IconButton>
           </div>
         ))}
-        <Button variant="ghost" onClick={() => onChange([...items, pair()])}>
-          <FiPlus />
-          Add item
-        </Button>
+        </div>
+        <div className="pair-add-row">
+          <Button
+            variant="ghost"
+            className="compact-add-action"
+            onClick={() => onChange([...items, pair()])}
+          >
+            <FiPlus />
+            Add item
+          </Button>
+        </div>
       </div>
     </div>
   );

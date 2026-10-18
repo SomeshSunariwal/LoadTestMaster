@@ -64,7 +64,7 @@ export function History() {
                       label={`Delete ${r.name} run`}
                       onClick={() => void app.perform(() => client.deleteRun(r.id))}
                     >
-                      <FiTrash2 />
+                      <FiTrash2 className="delete-icon" />
                     </IconButton>
                   </div>
                 </td>

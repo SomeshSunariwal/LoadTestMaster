@@ -7,18 +7,20 @@
 }
 .config-section h4 {
   margin-bottom: 15px;
-  font-size: 11px;
+  font-size: var(--text-section);
 }
 .config-section .field input {
   padding: 8px 9px;
 }
 .config-section .field > span {
-  font-size: 9px;
+  font-size: var(--text-small);
 }
 .config-section .form-grid {
   gap: 13px 11px;
 }
 .load-mode-switch {
+  position: relative;
+  isolation: isolate;
   display: flex;
   gap: 4px;
   padding: 3px;
@@ -26,7 +28,26 @@
   border-radius: 6px;
   background: var(--input);
 }
+.load-mode-switch::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 5px);
+  box-sizing: border-box;
+  border: 1px solid var(--selected-border);
+  border-radius: 4px;
+  background: var(--selected);
+  pointer-events: none;
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+.load-mode-switch[data-mode='tps']::before {
+  transform: translateX(calc(100% + 4px));
+}
 .load-mode-switch > button {
+  position: relative;
+  z-index: 1;
   flex: 1;
   min-width: 0;
   padding: 8px 6px;
@@ -34,16 +55,19 @@
   border-radius: 4px;
   background: transparent;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-control);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
 }
 .load-mode-switch > button[aria-pressed='true'] {
-  background: var(--selected);
-  border-color: var(--selected-border);
   color: var(--text);
+}
+@media (prefers-reduced-motion: reduce) {
+  .load-mode-switch::before {
+    transition: none;
+  }
 }
 .load-mode-switch > button > svg {
   font-size: 12px;
@@ -60,7 +84,7 @@
   align-items: center;
   justify-content: space-between;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-small);
   cursor: pointer;
 }
 .load-advanced > summary::-webkit-details-marker {

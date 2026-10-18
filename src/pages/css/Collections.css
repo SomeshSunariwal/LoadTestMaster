@@ -12,7 +12,7 @@
 .collection-search-empty {
   padding: 12px 10px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 .collection-item {
   display: flex;
@@ -40,7 +40,7 @@
   font-size: 21px;
 }
 .collection-item strong {
-  font-size: 11px;
+  font-size: var(--text-small);
   display: block;
   max-width: 132px;
   text-overflow: ellipsis;
@@ -48,7 +48,7 @@
   white-space: nowrap;
 }
 .collection-item small {
-  font-size: 10px;
+  font-size: var(--text-small);
   color: var(--muted);
   display: block;
   margin-top: 5px;
@@ -73,7 +73,7 @@
   gap: 4px;
 }
 .collection-heading p {
-  font-size: 10px;
+  font-size: var(--text-small);
   color: var(--muted);
   margin-top: 7px;
 }
@@ -96,16 +96,16 @@
   border: 0;
   background: none;
   padding: 0;
-  font-size: 11px;
+  font-size: var(--text-small);
   text-align: left;
-  font-weight: 550;
+  font-weight: 600;
 }
 .api-name:hover {
   color: var(--blue);
 }
 .endpoint {
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-small);
   margin-top: 5px;
 }
 .row-actions {
@@ -123,7 +123,7 @@
   gap: 5px;
   margin-top: auto;
   padding: 8px 0;
-  font-size: 8px;
+  font-size: var(--text-small);
   color: var(--faint);
   border-top: 1px solid var(--border);
 }
@@ -154,15 +154,15 @@
   margin-top: 1px;
 }
 .global-banner strong {
-  font-size: 10px;
+  font-size: var(--text-small);
 }
 .global-banner p {
-  font-size: 9px;
+  font-size: var(--text-small);
   color: var(--muted);
   margin-top: 4px;
 }
 .manage-env {
-  font-size: 9px;
+  font-size: var(--text-small);
   display: flex;
   margin: 9px 0 15px auto;
   justify-content: flex-end;
@@ -176,7 +176,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 10px;
+  font-size: var(--text-small);
 }
 .configuration-footer {
   padding: 14px;
@@ -189,7 +189,7 @@
   padding: 11px;
 }
 .api-config-cell .badge {
-  font-size: 9px;
+  font-size: var(--text-small);
 }
 @media (min-width: 1600px) {
   .configuration-content {
@@ -203,7 +203,7 @@
   }
   .collection-item strong {
     max-width: 108px;
-    font-size: 10px;
+    font-size: var(--text-small);
   }
   .collection-item > svg:first-child {
     font-size: 18px;
@@ -215,7 +215,7 @@
     font-size: 14px;
   }
   .collection-heading .button {
-    font-size: 9px;
+    font-size: var(--text-control);
   }
   .api-list-footer > span:last-child {
     display: none;

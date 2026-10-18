@@ -19,8 +19,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 12px;
+  font-size: var(--text-section);
   margin-bottom: 10px;
+}
+.api-editor-modal .api-main .inset-section > p.helper,
+.api-editor-modal .api-main .body-generators > p.helper,
+.api-editor-modal .api-main > .inset-section:first-child .field > small {
+  font-size: calc(var(--text-small) - 2px);
 }
 .api-details-grid {
   display: grid;
@@ -34,7 +39,7 @@
   background: var(--bg);
 }
 .compact > button {
-  font-size: 10px;
+  font-size: calc(var(--text-control) - 2px);
   padding: 9px 11px;
 }
 .compact {
@@ -53,7 +58,9 @@
   height: 2px;
   background: var(--blue);
   pointer-events: none;
-  transition: left 300ms ease, width 300ms ease;
+  transition:
+    left 300ms ease,
+    width 300ms ease;
 }
 @media (prefers-reduced-motion: reduce) {
   .config-tab-indicator {
@@ -63,14 +70,81 @@
 .api-modal-grid .pair-row {
   grid-template-columns: 18px minmax(60px, 0.8fr) minmax(70px, 1.2fr) 26px;
   gap: 7px;
+  margin: 0;
+  min-height: 32px;
+}
+.api-modal-grid .pair-items > .pair-row {
+  height: 40px;
+  padding: 4px 0;
+}
+.api-modal-grid .pair-items {
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+.api-modal-grid .pair-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.api-modal-grid .pair-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 .api-modal-grid .pair-row input {
-  padding: 8px;
-  font-size: 10px;
+  padding: 6px;
+  font-size: var(--text-control);
+  height: 32px;
+}
+.api-modal-grid .pair-editor .pair-row .variable-field {
+  --variable-padding: 6px;
+  --variable-font-size: var(--text-control);
+}
+.api-modal-grid .pair-row > input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  justify-self: center;
+}
+.api-modal-grid .pair-row > .icon-button {
+  width: 26px;
+  height: 32px;
 }
 .api-modal-grid .pair-heading {
-  padding: 9px 0;
-  font-size: 9px;
+  padding: 0 5px 0 0;
+  min-height: 0;
+  font-size: var(--text-small);
+  border-radius: 0;
+  background: transparent;
+}
+.api-modal-grid .pair-heading > span:nth-child(2),
+.api-modal-grid .pair-heading > span:nth-child(3) {
+  padding-left: 0;
+}
+.api-modal-grid .pair-heading > span:last-child {
+  width: auto;
+}
+.api-modal-grid .pair-add-row {
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+}
+.api-modal-grid .pair-add-row > .compact-add-action {
+  display: inline-flex;
+  gap: 5px;
+  width: fit-content;
+  align-items: center;
+  justify-content: start;
+  height: auto;
+  margin: 0;
+  padding: 3px 4px;
+}
+.api-modal-grid .compact-add-action > svg {
+  justify-self: center;
 }
 .api-main .config-section {
   padding-top: 12px;
@@ -81,6 +155,8 @@
 .modal.api-editor-modal {
   width: 1280px;
   max-width: calc(100vw - 48px);
+  height: min(1000px, calc(100dvh - 48px));
+  max-height: calc(100dvh - 48px);
 }
 .api-editor-modal .modal-heading {
   margin-bottom: 14px;
@@ -98,7 +174,7 @@
 }
 .api-assertions {
   margin-top: 10px;
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 .api-assertions summary {
   cursor: pointer;
@@ -115,7 +191,6 @@
 }
 
 .api-editor-modal {
-  height: auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -125,12 +200,13 @@
   flex-shrink: 0;
 }
 .api-modal-grid {
-  flex: 0 1 auto;
+  flex: 1 1 0;
   min-height: 0;
 }
 .api-main {
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   padding-right: 4px;
 }
 .api-side {
@@ -157,11 +233,10 @@
   height: 100%;
 }
 @media (max-width: 800px) {
-  .api-editor-modal {
-    height: auto;
-  }
   .modal.api-editor-modal {
     max-width: calc(100vw - 24px);
+    height: min(1000px, calc(100dvh - 24px));
+    max-height: calc(100dvh - 24px);
   }
   .api-modal-grid {
     overflow-y: auto;

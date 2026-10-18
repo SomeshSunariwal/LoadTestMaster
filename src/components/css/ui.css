@@ -24,8 +24,8 @@
 }
 .button {
   padding: 9px 14px;
-  font-size: 11px;
-  font-weight: 550;
+  font-size: var(--text-control);
+  font-weight: 600;
   border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--surface-raised);
@@ -44,6 +44,10 @@
 }
 .button:hover {
   filter: brightness(1.12);
+}
+.button.secondary:hover:not(:disabled) {
+  filter: none;
+  background: var(--surface-hover);
 }
 .button.primary {
   background: #3579f6;
@@ -75,10 +79,30 @@
   font-size: 14px;
   flex-shrink: 0;
 }
+.button.ghost.compact-add-action {
+  padding: 3px 4px;
+  gap: 5px;
+}
 .icon-button:hover {
   background: var(--surface-raised);
   color: var(--text);
 }
+.delete-icon {
+  color: #f56b79;
+}
+.required-marker { color: #f56b79; }
+.app-shell input[aria-invalid='true'],
+.app-shell textarea[aria-invalid='true'],
+.app-shell button[aria-invalid='true'],
+.app-shell .body-editor-box[aria-invalid='true'] {
+  border-color: #f56b79;
+  box-shadow: 0 0 0 2px #f56b7920;
+}
+.generator-settings > label:has(input[aria-invalid='true']) {
+  border-color: #f56b79;
+  box-shadow: 0 0 0 2px #f56b7920;
+}
+.generator-settings input[aria-invalid='true'] { box-shadow: none; }
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -93,16 +117,16 @@
   border-bottom: 1px solid var(--border);
 }
 .panel-title h3 {
-  font-size: 12px;
+  font-size: var(--text-section);
 }
 .count {
   color: var(--muted);
-  font-size: 10px;
-  font-weight: 450;
+  font-size: var(--text-small);
+  font-weight: 400;
   margin-left: 6px;
 }
 .badge {
-  font-size: 10px;
+  font-size: var(--text-small);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -176,7 +200,7 @@
   color: var(--muted);
 }
 .helper {
-  font-size: 11px;
+  font-size: var(--text-small);
   line-height: 1.7;
 }
 .text-green {
@@ -192,7 +216,7 @@
 }
 .text-link {
   color: var(--blue);
-  font-size: 11px;
+  font-size: var(--text-small);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -204,12 +228,12 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
-  font-size: 11px;
+  font-size: var(--text-small);
   color: var(--muted);
   min-width: 0;
 }
 .field > span {
-  font-size: 10px;
+  font-size: var(--text-small);
 }
 .field-label-row {
   display: inline-flex;
@@ -223,7 +247,7 @@
   align-items: center;
   color: var(--muted);
   cursor: help;
-  font-size: 11px;
+  font-size: var(--text-small);
   line-height: 1;
 }
 .field-tooltip-trigger:hover,
@@ -243,7 +267,7 @@
   background: var(--surface-raised);
   color: var(--text);
   box-shadow: 0 6px 18px #0005;
-  font-size: 10px;
+  font-size: var(--text-small);
   font-weight: 400;
   line-height: 1.5;
   white-space: normal;
@@ -256,10 +280,10 @@
 .field input,
 .field select,
 .field textarea {
-  font-size: 11px;
+  font-size: var(--text-control);
 }
 .field small {
-  font-size: 10px;
+  font-size: var(--text-small);
   color: var(--faint);
   line-height: 1.5;
 }
@@ -277,7 +301,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 11px;
+  font-size: var(--text-small);
   cursor: pointer;
   margin: 13px 0;
 }
@@ -334,13 +358,13 @@
   border: 0;
   box-shadow: none;
   padding: 10px 0;
-  font-size: 11px;
+  font-size: var(--text-control);
 }
 .search:focus-within {
   border-color: var(--blue);
 }
 .search > kbd {
-  font-size: 8px;
+  font-size: var(--text-small);
   color: var(--faint);
   border: 1px solid var(--border);
   border-radius: 3px;
@@ -359,7 +383,7 @@
   gap: 8px;
   background: transparent;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-control);
   padding: 12px 17px;
 }
 .tabs > button.active {
@@ -368,7 +392,7 @@
   background: linear-gradient(0deg, #4d8dff12, transparent);
 }
 .method {
-  font-size: 8px;
+  font-size: var(--text-small);
   font-weight: 600;
   padding: 3px 6px;
   border-radius: 3px;
@@ -417,7 +441,7 @@
   display: flex;
   gap: 8px;
   align-items: flex-start;
-  font-size: 10px;
+  font-size: var(--text-small);
   color: var(--muted);
   padding: 12px;
   border: 1px solid var(--border);
@@ -466,7 +490,7 @@
 }
 .modal-heading p {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-small);
   margin-top: 7px;
 }
 .modal-footer {
@@ -483,7 +507,7 @@
 }
 .code-editor {
   font-family: Consolas, monospace;
-  font-size: 11px;
+  font-size: var(--text-code);
   line-height: 1.8;
   min-height: 150px;
   color: #94bbff;
@@ -491,9 +515,8 @@
 }
 .toast {
   position: fixed;
-  bottom: 26px;
-  left: calc(50% + 100px);
-  transform: translateX(-50%);
+  bottom: 42px;
+  right: 0px;
   z-index: 100;
   display: flex;
   align-items: center;
@@ -501,10 +524,34 @@
   background: var(--surface-raised);
   border: 1px solid #1bcd9b66;
   box-shadow: var(--shadow);
-  padding: 10px 12px 10px 16px;
-  border-radius: 8px;
-  max-width: 650px;
+  padding: 0 0 0 16px;
+  border-radius: 10px 0px 0px 10px;
+  overflow: hidden;
+  width: max-content;
+  max-width: min(480px, calc(100vw - 48px));
   font-size: 12px;
+  animation: toast-slide-in 240ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+.toast > .icon-button {
+  align-self: stretch;
+  height: auto;
+  width: 44px;
+  min-height: 46px;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+}
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(calc(100% + 24px));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
 }
 .toast > svg {
   color: #1bcd9b;
@@ -517,6 +564,7 @@
   color: #f56b79;
 }
 .toast > span {
+  padding: 12px 0;
   max-height: 110px;
   overflow: auto;
   line-height: 1.6;
@@ -531,9 +579,8 @@
     max-height: calc(100vh - 24px);
   }
   .toast {
-    left: 50%;
-    max-width: 90%;
-    min-width: 250px;
+    right: 12px;
+    max-width: calc(100vw - 24px);
   }
 }
 .modal-theme {
@@ -558,15 +605,41 @@
 .select-control {
   display: block;
   position: relative;
+  min-width: 0;
 }
-.select-control select {
+.select-control .select-trigger {
   appearance: none;
   width: 100%;
-  padding-right: 36px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 10px 32px 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--text-control);
+  font-weight: 400;
+  line-height: 1.4;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.select-control > svg {
+.select-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.select-trigger:hover:not(:disabled) { border-color: var(--muted); }
+.select-trigger:focus-visible,
+.select-trigger[data-state='open'] {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px #4d8dff1c;
+}
+.select-trigger:disabled { cursor: not-allowed; }
+.select-control .select-trigger > svg {
   position: absolute;
-  right: 12px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
   width: 15px;
@@ -574,3 +647,43 @@
   color: var(--muted);
   pointer-events: none;
 }
+.select-trigger[data-state='open'] > svg { transform: translateY(-50%) rotate(180deg); }
+.select-menu {
+  z-index: 100;
+  width: var(--radix-popover-trigger-width);
+  min-width: 140px;
+  max-width: calc(100vw - 24px);
+  max-height: min(280px, var(--radix-popover-content-available-height));
+  overflow-y: auto;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.select-menu > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--text-control);
+  line-height: 1.4;
+  text-align: left;
+}
+.select-menu > button > span { min-width: 0; overflow-wrap: anywhere; }
+.select-menu > button[aria-selected='true'] { color: var(--blue); }
+.select-menu > button[data-active='true'],
+.select-menu > button:hover:not(:disabled) {
+  background: var(--selected);
+  color: var(--blue);
+}
+.select-menu > button:focus-visible { outline: none; }
+.select-menu > button:disabled { cursor: not-allowed; color: var(--muted); }
+

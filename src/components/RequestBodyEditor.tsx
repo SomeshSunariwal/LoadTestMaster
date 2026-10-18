@@ -1,7 +1,14 @@
 import './css/RequestBodyEditor.css';
-import { useLayoutEffect, useRef, useState } from 'react';
-import { FiCode, FiCornerDownLeft } from 'react-icons/fi';
-import type { ApiDefinition } from '../shared/schema';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { FiCode, FiCornerDownLeft, FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
+import { bodyGeneratorsSchema, type ApiDefinition, type BodyGenerator } from '../shared/schema';
+import {
+  createBodyPreview,
+  supportsBodyGenerators,
+  formatJsonTemplate,
+} from '../shared/bodyGenerators';
+import { variableResolver } from '../shared/environmentVariables';
+import { useApp } from '../hooks/useApp';
 import type { JsonValue } from '../shared/jsonTree';
 import { Button } from './ui';
 import { VariableTextarea } from './VariableInput';
@@ -14,14 +21,56 @@ export function RequestBodyEditor({
   value,
   onTypeChange,
   onChange,
+  generators = [],
+  validationError = '',
 }: {
   type: ApiDefinition['bodyType'];
   value: string;
   onTypeChange: (type: ApiDefinition['bodyType']) => void;
   onChange: (value: string) => void;
+  generators?: BodyGenerator[];
+  validationError?: string;
 }) {
   const [view, setView] = useState<'text' | 'tree'>('text');
   const [error, setError] = useState('');
+  const template = /\{\{\s*gen\./.test(value);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const supported = supportsBodyGenerators(type);
+  const previewing = supported && template && previewIndex !== null;
+  const app = useApp();
+  const workspace = app.state?.workspace;
+  const collection =
+    workspace?.collections.find((c) => c.id === app.collectionId) ?? workspace?.collections[0];
+  const environment = workspace?.environments.find((e) => e.id === collection?.environmentId);
+  const generatorsKey = JSON.stringify(generators);
+  const environmentKey = JSON.stringify(
+    environment ?? { id: '', name: '', color: '', variables: [] },
+  );
+  const getPreview = useMemo(
+    () =>
+      createBodyPreview(
+        value,
+        JSON.parse(generatorsKey),
+        variableResolver(JSON.parse(environmentKey)),
+        supportsBodyGenerators(type) ? type : 'json',
+      ),
+    [value, generatorsKey, environmentKey, type],
+  );
+  useEffect(() => setPreviewIndex(null), [value, type, generatorsKey, environmentKey]);
+  let previewBody = '',
+    previewError = '';
+  if (previewing) {
+    try {
+      previewBody = getPreview(previewIndex);
+    } catch (error) {
+      const validated = bodyGeneratorsSchema.safeParse(generators);
+      previewError = !validated.success
+        ? validated.error.issues[0]!.message
+        : error instanceof Error
+          ? error.message
+          : 'Could not preview this body.';
+    }
+  }
   const [wrapText, setWrapText] = useState(true);
   const bodyTabsRef = useRef<HTMLDivElement>(null);
   const [bodyTabIndicator, setBodyTabIndicator] = useState({ left: 0, width: 0 });
@@ -43,7 +92,14 @@ export function RequestBodyEditor({
   }
   return (
     <section className="inset-section request-body-section">
-      <h3>Request body</h3>
+      <h3>
+        Request body{' '}
+        {previewing && (
+          <span className="body-preview-status" role="status">
+            Preview · Request {previewIndex + 1}
+          </span>
+        )}
+      </h3>
       <div className="body-toolbar">
         <div
           ref={bodyTabsRef}
@@ -86,12 +142,17 @@ export function RequestBodyEditor({
           {type === 'json' && (
             <Button
               variant="ghost"
-              disabled={!value.trim()}
+              disabled={!value.trim() || previewing}
+              title="Format JSON"
               onClick={() => {
-                if (valid) {
-                  onChange(JSON.stringify(parsed, null, 2));
+                try {
+                  onChange(formatJsonTemplate(value));
                   setError('');
-                } else setError('Enter valid JSON to format it.');
+                } catch {
+                  setError(
+                    'Enter valid JSON to format it. Generator and environment references are supported.',
+                  );
+                }
               }}
             >
               <FiCode />
@@ -107,21 +168,74 @@ export function RequestBodyEditor({
         </div>
       </div>
       <div
+        aria-invalid={!!validationError}
         className={`body-editor-box ${type === 'none' ? 'body-editor-none' : ''} ${type === 'json' ? 'body-editor-json' : ''}`}
       >
-        {type === 'json' && (
-          <div
-            className="body-view-tabs"
-            data-view={view}
-            role="group"
-            aria-label="JSON editor view"
-          >
-            <button aria-pressed={view === 'text'} type="button" onClick={() => setView('text')}>
-              Text
-            </button>
-            <button aria-pressed={view === 'tree'} type="button" onClick={() => setView('tree')}>
-              Tree
-            </button>
+        {supported && (
+          <div className="body-bottom-controls">
+            {template && (
+              <div className="body-preview-controls" role="group" aria-label="Request body preview">
+                {previewing ? (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Previous request preview"
+                      title="Previous request"
+                      disabled={previewIndex === 0}
+                      onClick={() => setPreviewIndex((index) => Math.max(0, (index ?? 0) - 1))}
+                    >
+                      <FiChevronLeft />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Next request preview"
+                      title="Next request"
+                      onClick={() => setPreviewIndex((index) => (index ?? 0) + 1)}
+                    >
+                      <FiChevronRight />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Close preview"
+                      title="Close preview"
+                      onClick={() => setPreviewIndex(null)}
+                    >
+                      <FiX />
+                    </button>
+                  </>
+                ) : (
+                  <button type="button" onClick={() => setPreviewIndex(0)}>
+                    Preview
+                  </button>
+                )}
+              </div>
+            )}
+            {type === 'json' && (
+              <div
+                className="body-view-tabs"
+                data-view={previewing ? 'text' : view}
+                role="group"
+                aria-label="JSON editor view"
+              >
+                <button
+                  disabled={previewing}
+                  aria-pressed={previewing || view === 'text'}
+                  type="button"
+                  onClick={() => setView('text')}
+                >
+                  Text
+                </button>
+                <button
+                  disabled={template || previewing}
+                  title={template ? 'Use Text view for generator templates.' : undefined}
+                  aria-pressed={!previewing && view === 'tree'}
+                  type="button"
+                  onClick={() => setView('tree')}
+                >
+                  Tree
+                </button>
+              </div>
+            )}
           </div>
         )}
         {type === 'none' ? (
@@ -129,9 +243,26 @@ export function RequestBodyEditor({
             <FiCode />
             <span>This request has no body</span>
           </div>
+        ) : previewing ? (
+          previewError ? (
+            <p role="alert" className="form-error">
+              {previewError}
+            </p>
+          ) : type === 'json' ? (
+            <JsonCodeEditor value={previewBody} wrap={wrapText} onChange={() => {}} readOnly />
+          ) : (
+            <textarea
+              className="code-editor"
+              aria-label="Request body preview"
+              value={previewBody}
+              readOnly
+              wrap={wrapText ? 'soft' : 'off'}
+              spellCheck={false}
+            />
+          )
         ) : type === 'multipart' ? (
           <MultipartBodyEditor value={value} onChange={onChange} />
-        ) : type === 'json' && view === 'tree' ? (
+        ) : type === 'json' && view === 'tree' && !template ? (
           valid ? (
             <JsonTreeEditor
               value={parsed}
@@ -147,6 +278,7 @@ export function RequestBodyEditor({
           )
         ) : type === 'json' ? (
           <JsonCodeEditor
+            generators={generators}
             value={value}
             wrap={wrapText}
             onChange={(next) => {
@@ -156,6 +288,7 @@ export function RequestBodyEditor({
           />
         ) : (
           <VariableTextarea
+            generatorNames={supported ? generators.map((g) => `gen.${g.key}`) : []}
             className="code-editor"
             wrap={wrapText ? 'soft' : 'off'}
             spellCheck={false}
@@ -177,9 +310,9 @@ export function RequestBodyEditor({
           />
         )}
       </div>
-      {error && (
+      {(error || validationError) && (
         <p role="alert" className="form-error">
-          {error}
+          {error || validationError}
         </p>
       )}
     </section>

@@ -1,20 +1,8 @@
 import type { ApiDefinition, Environment } from '../shared/schema';
 import { parseMultipartFields } from '../shared/multipart';
-
-export function variableResolver(environment: Environment) {
-  const values = Object.fromEntries(
-    environment.variables.filter((v) => v.enabled && v.key).map((v) => [v.key, v.value]),
-  );
-
-  const resolve = (input: string, stack: string[] = []): string =>
-    input.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (_, key: string) => {
-      if (!(key in values)) throw new Error(`Missing environment variable: ${key}`);
-      if (stack.includes(key) || stack.length > 20)
-        throw new Error(`Circular environment variable: ${key}`);
-      return resolve(values[key]!, [...stack, key]);
-    });
-  return resolve;
-}
+import { renderGeneratedBody, supportsBodyGenerators } from '../shared/bodyGenerators';
+import { variableResolver } from '../shared/environmentVariables';
+export { variableResolver } from '../shared/environmentVariables';
 
 export function prepareRequest(api: ApiDefinition, environment: Environment) {
   const resolve = variableResolver(environment);
@@ -37,12 +25,14 @@ export function prepareRequest(api: ApiDefinition, environment: Environment) {
       `Basic ${Buffer.from(`${resolve(api.username)}:${resolve(api.password)}`).toString('base64')}`,
     );
   let multipartBody: Buffer<ArrayBuffer> | undefined;
+  const format = supportsBodyGenerators(api.bodyType) ? api.bodyType : undefined;
+  const generated = format && (api.generators?.length || /\{\{\s*gen\./.test(api.body)) && !['GET', 'HEAD'].includes(api.method);
   let body =
     ['GET', 'HEAD'].includes(api.method) || api.bodyType === 'none'
       ? undefined
       : api.bodyType === 'multipart'
         ? api.body
-        : resolve(api.body);
+        : generated ? renderGeneratedBody(api.body, api.generators ?? [], 0, resolve, format) : resolve(api.body);
   if (body && api.bodyType === 'json') {
     JSON.parse(body);
     if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
@@ -53,6 +43,9 @@ export function prepareRequest(api: ApiDefinition, environment: Environment) {
   }
   if (body !== undefined && api.bodyType === 'xml' && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/xml');
+  }
+  if (body !== undefined && api.bodyType === 'graphql' && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/graphql');
   }
   if (body !== undefined && api.bodyType === 'multipart') {
     // Resolve each field after parsing, so quotes in variable values remain valid.
@@ -90,7 +83,9 @@ export function prepareRequest(api: ApiDefinition, environment: Environment) {
     multipartBody = Buffer.concat(parts);
     headers.set('Content-Type', 'multipart/form-data; boundary=' + boundary);
   }
+  let sequence = 0;
   return {
+    nextBody: generated ? () => renderGeneratedBody(api.body, api.generators ?? [], sequence++, resolve, format) : undefined,
     url: url.toString(),
     options: {
       method: api.method,

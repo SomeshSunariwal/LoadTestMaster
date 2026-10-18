@@ -125,7 +125,7 @@ export function Collections() {
                 </div>
                 <div className="actions">
                   <IconButton label="Delete collection" onClick={() => setDeleting(true)}>
-                    <FiTrash2 />
+                    <FiTrash2 className="delete-icon" />
                   </IconButton>
                   <Button onClick={() => setEditing(blankApi())}>
                     <FiPlus />
@@ -238,7 +238,7 @@ export function Collections() {
                                   })
                                 }
                               >
-                                <FiTrash2 />
+                                <FiTrash2 className="delete-icon" />
                               </IconButton>
                             </div>
                           </td>
@@ -297,9 +297,9 @@ export function Collections() {
                   <Field label="Environment">
                     <Select
                       value={collection.environmentId}
-                      onChange={(e) =>
+                      onValueChange={(value) =>
                         change((c) => {
-                          c.environmentId = e.target.value;
+                          c.environmentId = value;
                         })
                       }
                     >

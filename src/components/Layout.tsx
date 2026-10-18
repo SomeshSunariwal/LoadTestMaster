@@ -49,7 +49,10 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="workspace-label">
-          WORKSPACE <span>LOCAL</span>
+          WORKSPACE{' '}
+          <span>
+            <span>LOCAL</span>
+          </span>
         </div>
         <nav aria-label="Main navigation">
           {navigation.map((n) => (
@@ -115,14 +118,6 @@ export function Layout({ children }: { children: ReactNode }) {
               </div>
             ))}
           </section>
-          <div className="sidebar-footer">
-            <span className="avatar">LM</span>
-            <div>
-              <strong>Local workspace</strong>
-              <small>All systems ready</small>
-            </div>
-            <span className="dot green" />
-          </div>
         </div>
       </aside>
       <div className="main-shell">
@@ -174,7 +169,7 @@ export function Layout({ children }: { children: ReactNode }) {
             Local-first. Built for performance.
           </span>
           <span>
-            LoadMaster <span className="muted">v1.0.0</span>
+            LoadMaster <span className="muted">v1.0.1</span>
           </span>
         </footer>
       </div>

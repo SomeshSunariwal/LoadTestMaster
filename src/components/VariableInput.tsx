@@ -10,7 +10,12 @@ import * as Popover from '@radix-ui/react-popover';
 import { useApp } from '../hooks/useApp';
 import { completeVariable, variableToken, variableHighlights } from '../shared/variableCompletion';
 
-type Common = { value: string; onValueChange: (value: string) => void; environmentId?: string };
+type Common = {
+  value: string;
+  onValueChange: (value: string) => void;
+  environmentId?: string;
+  generatorNames?: string[];
+};
 type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> & Common;
 type TextareaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'value' | 'onChange'> &
   Common;
@@ -20,7 +25,7 @@ function VariableField({
   ...props
 }: (InputProps | TextareaProps) & { multiline?: boolean }) {
   const app = useApp();
-  const { value, onValueChange, environmentId, ...native } = props;
+  const { value, onValueChange, environmentId, generatorNames = [], ...native } = props;
   const workspace = app.state?.workspace;
   const collection =
     workspace?.collections.find((c) => c.id === app.collectionId) ?? workspace?.collections[0];
@@ -34,7 +39,10 @@ function VariableField({
   const id = useId();
   const token = variableToken(value, caret);
   const names = [
-    ...new Set(environment?.variables.filter((v) => v.enabled && v.key).map((v) => v.key) ?? []),
+    ...new Set([
+      ...(environment?.variables.filter((v) => v.enabled && v.key).map((v) => v.key) ?? []),
+      ...generatorNames,
+    ]),
   ];
   const highlighted = variableHighlights(value, names);
   const hasVariables = highlighted.some((part) => part.variable);
