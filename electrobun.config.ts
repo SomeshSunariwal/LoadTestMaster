@@ -5,7 +5,7 @@ export default {
   build: {
     mainProcess: 'bun',
     bun: { entrypoint: 'src/backend/desktop.ts' },
-    copy: { dist: 'views/main' },
+    copy: { dist: 'views/main', 'assets/loadmaster.ico': 'assets/loadmaster.ico' },
     win: { bundleCEF: false, icon: 'assets/loadmaster.ico' },
   },
   runtime: { exitOnLastWindowClosed: true },

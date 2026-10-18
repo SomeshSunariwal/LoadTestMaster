@@ -1,4 +1,6 @@
-import { BrowserView, BrowserWindow } from 'electrobun/main';
+import { BrowserView, BrowserWindow, PATHS } from 'electrobun/main';
+import { join } from 'node:path';
+import { setWindowIcon } from './windowIcon';
 import type { AppRPC } from '../shared/rpc';
 import { getDataDirectory } from './utils';
 import { createService } from './service';
@@ -37,4 +39,11 @@ const mainWindow = new BrowserWindow({
   rpc,
 });
 
-mainWindow.on('close', () => service.shutdown());
+const releaseWindowIcon = setWindowIcon(
+  () => mainWindow.ptr,
+  join(PATHS.RESOURCES_FOLDER, 'app/assets/loadmaster.ico'),
+);
+mainWindow.on('close', () => {
+  releaseWindowIcon();
+  service.shutdown();
+});
