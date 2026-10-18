@@ -294,7 +294,7 @@ export function Toast({
   onClose: () => void;
 }) {
   return (
-    <div role={error ? 'alert' : 'status'} className={`toast ${error ? 'error' : ''}`}>
+    <div key={message} role={error ? 'alert' : 'status'} className={`toast ${error ? 'error' : ''}`}>
       {error ? <FiInfo /> : <FiCheck />}
       <span>{message}</span>
       <IconButton label="Dismiss notification" onClick={onClose}>

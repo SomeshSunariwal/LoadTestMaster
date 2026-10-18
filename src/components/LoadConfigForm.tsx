@@ -16,7 +16,7 @@ export function LoadConfigForm({
     <div className="load-config-form">
       <div className="config-section">
         <h4>Load mode</h4>
-        <div className="load-mode-switch" role="group" aria-label="Load mode">
+        <div className="load-mode-switch" data-mode={tps ? 'tps' : 'users'} role="group" aria-label="Load mode">
           <button type="button" aria-pressed={!tps} onClick={() => set('loadMode', 'users')}>
             <FiUsers /> User-based
           </button>
