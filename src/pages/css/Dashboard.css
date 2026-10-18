@@ -26,7 +26,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 9px;
+  font-size: var(--text-small);
   color: var(--faint);
   margin-top: 19px;
 }
@@ -54,7 +54,7 @@
   margin-top: 30px;
 }
 .visual-label {
-  font-size: 9px;
+  font-size: var(--text-small);
   letter-spacing: 1.5px;
   display: flex;
   align-items: center;
@@ -67,7 +67,7 @@
 }
 .visual-label > span {
   margin-left: auto;
-  font-size: 8px;
+  font-size: var(--text-small);
   letter-spacing: 1px;
   color: #1bcd9b;
   border: 1px solid #1bcd9b33;
@@ -84,7 +84,7 @@
   margin-top: 14px;
 }
 .visual-stats small {
-  font-size: 8px;
+  font-size: var(--text-small);
   letter-spacing: 1.4px;
   color: var(--faint);
 }
@@ -112,7 +112,7 @@
   top: 20px;
   right: 20px;
   color: var(--faint);
-  font-size: 10px;
+  font-size: var(--text-small);
 }
 .intro-icon {
   height: 33px;
@@ -137,7 +137,7 @@
 }
 .intro-card p {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-small);
   max-width: 260px;
   margin-top: 7px;
 }
@@ -162,11 +162,11 @@
   font-size: 20px;
 }
 .quick-collection strong {
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 .quick-collection small {
   display: block;
-  font-size: 9px;
+  font-size: var(--text-small);
   color: var(--muted);
   margin-top: 5px;
 }
@@ -271,7 +271,7 @@
   color: var(--muted);
   padding: 13px 10px 13px 17px;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: var(--text-control);
 }
 .run-tab.active > button[role='tab'] {
   color: var(--text);
@@ -315,7 +315,7 @@
 }
 .run-heading p {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-small);
   margin-top: 6px;
 }
 .run-meta {
@@ -331,7 +331,7 @@
 .dashboard-foot {
   display: flex;
   justify-content: space-between;
-  font-size: 8px;
+  font-size: var(--text-small);
   color: var(--faint);
   margin-top: 10px;
 }
@@ -365,7 +365,7 @@
     gap: 7px;
   }
   .welcome-copy .button {
-    font-size: 10px;
+    font-size: var(--text-control);
     padding: 8px 10px;
   }
   .run-heading {
@@ -381,17 +381,17 @@
     padding: 17px;
   }
   .intro-card h3 {
-    font-size: 12px;
+    font-size: var(--text-section);
   }
   .quick-collection {
     padding: 15px;
     gap: 9px;
   }
   .quick-collection strong {
-    font-size: 10px;
+    font-size: var(--text-small);
   }
   .quick-collection small {
-    font-size: 8px;
+    font-size: var(--text-small);
   }
 }
 @media (max-width: 800px) {
@@ -495,7 +495,7 @@
   border-radius: 4px;
   background: transparent;
   color: var(--text);
-  font-size: 10px;
+  font-size: var(--text-control);
   text-align: left;
   overflow-wrap: anywhere;
 }

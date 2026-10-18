@@ -57,6 +57,7 @@ interface ActiveRun {
 export class LoadEngine {
   private logs = new RequestLogs();
   private runLogFiles?: RunLogFiles;
+  private logFinalizations = new Map<string, Promise<void>>();
   private logWriteErrorReported = false;
   getLogs(runId: string, apiId: string) {
     return this.logs.get(runId, apiId);
@@ -67,6 +68,7 @@ export class LoadEngine {
     return structuredClone(run);
   }
   async getLogFiles(runId: string) {
+    await this.logFinalizations.get(runId);
     const run = this.runs.find((item) => item.id === runId);
     if (!run) throw new Error('Run not found.');
     return (await this.runLogFiles?.list(run.id, run.name)) ?? [];
@@ -118,8 +120,11 @@ export class LoadEngine {
     this.logs.retain([...this.active.keys(), ...this.archived.map((r) => r.id)]);
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (this.active.has(id)) throw new Error('Stop the run before deleting it.');
+    await this.logFinalizations.get(id);
+    const run = this.archived.find((r) => r.id === id);
+    if (run) await this.runLogFiles?.remove(run.id, run.name);
     this.archived = this.archived.filter((r) => r.id !== id);
     this.logs.retain([...this.active.keys(), ...this.archived.map((r) => r.id)]);
   }
@@ -339,6 +344,7 @@ export class LoadEngine {
     c: LoadConfig,
     prepared: ReturnType<typeof prepareRequest>,
   ) {
+    if (prepared.nextBody) prepared = { ...prepared, options: { ...prepared.options, body: prepared.nextBody() } };
     const controller = new AbortController();
     run.controllers.add(controller);
     this.inFlight++;
@@ -518,11 +524,19 @@ export class LoadEngine {
     this.archived = this.archived.slice(0, this.retention);
     this.logs.retain([...this.active.keys(), ...this.archived.map((run) => run.id)]);
     this.onComplete(r.snapshot);
+    const finalize = (async () => {
+      // Aborted requests still append their final diagnostics as they settle.
+      while (r.controllers.size > 0) await sleep(10);
+      await this.runLogFiles?.finalize(r.snapshot.id);
+    })().catch((error) => console.error('Run logs could not be finalized', error));
+    this.logFinalizations.set(r.snapshot.id, finalize);
+    void finalize.finally(() => this.logFinalizations.delete(r.snapshot.id));
   }
 
   async shutdown() {
     for (const r of this.active.values()) this.finish(r, 'stopped');
     while (this.inFlight > 0) await sleep(10);
+    await Promise.all(this.logFinalizations.values());
     await this.runLogFiles?.flush();
   }
 }

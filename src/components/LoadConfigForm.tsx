@@ -5,9 +5,11 @@ import { NumberField, Toggle } from './ui';
 export function LoadConfigForm({
   value,
   onChange,
+  invalidFields,
 }: {
   value: LoadConfig;
   onChange: (v: LoadConfig) => void;
+  invalidFields?: ReadonlySet<string>;
 }) {
   const set = <K extends keyof LoadConfig>(key: K, v: LoadConfig[K]) =>
     onChange({ ...value, [key]: v });
@@ -16,7 +18,12 @@ export function LoadConfigForm({
     <div className="load-config-form">
       <div className="config-section">
         <h4>Load mode</h4>
-        <div className="load-mode-switch" data-mode={tps ? 'tps' : 'users'} role="group" aria-label="Load mode">
+        <div
+          className="load-mode-switch"
+          data-mode={tps ? 'tps' : 'users'}
+          role="group"
+          aria-label="Load mode"
+        >
           <button type="button" aria-pressed={!tps} onClick={() => set('loadMode', 'users')}>
             <FiUsers /> User-based
           </button>
@@ -34,6 +41,7 @@ export function LoadConfigForm({
               min={1}
               max={100000}
               value={value.targetTps}
+              invalid={invalidFields?.has('targetTps')}
               onChange={(v) => set('targetTps', v)}
               tooltip="Target request starts per second, shared across APIs using this configuration. One transaction is one HTTP request. APIs with their own settings run separately."
             />
@@ -46,6 +54,7 @@ export function LoadConfigForm({
               min={1}
               max={1000}
               value={value.users}
+              invalid={invalidFields?.has('users')}
               onChange={(v) => set('users', v)}
               tooltip="The number of simulated users sending requests at the same time."
             />
@@ -54,6 +63,7 @@ export function LoadConfigForm({
             label="Ramp up (seconds)"
             max={86400}
             value={value.rampUp}
+              invalid={invalidFields?.has('rampUp')}
             onChange={(v) => set('rampUp', v)}
             tooltip={
               tps
@@ -66,6 +76,7 @@ export function LoadConfigForm({
             min={1}
             max={86400}
             value={value.duration}
+              invalid={invalidFields?.has('duration')}
             onChange={(v) => set('duration', v)}
             tooltip={
               tps
@@ -78,6 +89,7 @@ export function LoadConfigForm({
               label="Iterations per user"
               min={-1}
               value={value.iterations}
+              invalid={invalidFields?.has('iterations')}
               onChange={(v) => set('iterations', v)}
               tooltip="How many request batches each user runs for this API. Each batch sends the configured parallel requests. Use -1 to keep repeating until the duration ends."
             />
@@ -92,6 +104,7 @@ export function LoadConfigForm({
             min={1}
             max={300000}
             value={value.timeout * 1000}
+              invalid={invalidFields?.has('timeout')}
             onChange={(v) => set('timeout', v / 1000)}
             tooltip="Maximum time to wait for an individual API response, in milliseconds. For example, 1000 ms is 1 second."
           />
@@ -101,6 +114,7 @@ export function LoadConfigForm({
                 label="Request delay (ms)"
                 max={60000}
                 value={value.delay}
+              invalid={invalidFields?.has('delay')}
                 onChange={(v) => set('delay', v)}
                 tooltip="A fixed pause after each request batch before the user starts its next batch."
               />
@@ -109,6 +123,7 @@ export function LoadConfigForm({
                 min={1}
                 max={20}
                 value={value.parallel}
+              invalid={invalidFields?.has('parallel')}
                 onChange={(v) => set('parallel', v)}
                 tooltip="How many requests for this API each user sends at once in a batch. Higher values increase concurrent traffic."
               />
@@ -116,6 +131,7 @@ export function LoadConfigForm({
                 label="Rate limit (RPS, 0 = off)"
                 max={100000}
                 value={value.rateLimit}
+              invalid={invalidFields?.has('rateLimit')}
                 onChange={(v) => set('rateLimit', v)}
                 tooltip="An optional maximum request-start rate. Set 0 to turn this cap off and let users and parallel requests drive traffic."
               />
@@ -145,6 +161,7 @@ export function LoadConfigForm({
                   label="Minimum (ms)"
                   max={60000}
                   value={value.thinkMin}
+              invalid={invalidFields?.has('thinkMin')}
                   onChange={(v) => set('thinkMin', v)}
                   tooltip="The shortest random think-time pause added after a request batch."
                 />
@@ -152,6 +169,7 @@ export function LoadConfigForm({
                   label="Maximum (ms)"
                   max={60000}
                   value={value.thinkMax}
+              invalid={invalidFields?.has('thinkMax')}
                   onChange={(v) => set('thinkMax', v)}
                   tooltip="The longest random think-time pause added after a request batch."
                 />
@@ -163,3 +181,4 @@ export function LoadConfigForm({
     </div>
   );
 }
+

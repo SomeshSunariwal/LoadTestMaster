@@ -131,7 +131,7 @@ export function MultipartBodyEditor({
                   label={`Delete multipart field ${index + 1}`}
                   onClick={() => commit(fields.filter((item) => item.id !== field.id))}
                 >
-                  <FiTrash2 />
+                  <FiTrash2 className="delete-icon" />
                 </IconButton>
               </div>
             ))}

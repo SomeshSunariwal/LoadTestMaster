@@ -15,7 +15,7 @@
 }
 .body-type-tabs > button {
   flex: 0 0 auto;
-  font-size: 9px;
+  font-size: calc(var(--text-control) - 2px);
   padding: 8px 9px;
 }
 .body-type-tabs.indicator-ready > button.active {
@@ -31,7 +31,7 @@
   transition: left 300ms ease, width 300ms ease;
 }
 .body-toolbar .button {
-  font-size: 9px;
+  font-size: calc(var(--text-control) - 2px);
   padding: 4px;
 }
 .body-empty {
@@ -40,7 +40,7 @@
   justify-content: center;
   gap: 8px;
   color: var(--faint);
-  font-size: 10px;
+  font-size: var(--text-small);
   height: 88px;
   background: var(--bg);
   border: 1px dashed var(--border);
@@ -53,17 +53,26 @@
   height: 100%;
   min-height: 0;
   resize: none;
+  padding-bottom: 12px;
 }
 .request-body-section .code-editor::placeholder {
   color: var(--muted);
   opacity: 0.5;
   font-style: italic;
 }
+.body-bottom-controls {
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 0 0 6px 6px;
+}
+.body-bottom-controls:empty { display: none; }
 .body-view-tabs {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  z-index: 2;
+  position: relative;
   display: flex;
   padding: 3px;
   border: 1px solid var(--border);
@@ -71,7 +80,41 @@
   background: var(--surface-raised);
   box-shadow: 0 2px 8px #0002;
   isolation: isolate;
+  margin-left: auto;
+  height: 34px;
+  align-items: center;
 }
+.body-preview-controls {
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  box-shadow: 0 2px 8px #0002;
+  height: 34px;
+}
+.body-preview-controls > button {
+  display: grid;
+  place-items: center;
+  height: 26px;
+  min-width: 30px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--blue);
+  font-size: var(--text-control);
+}
+.body-preview-controls > button:hover:not(:disabled) {
+  background: var(--selected);
+}
+.body-preview-controls > button:disabled,
+.body-bottom-controls .body-view-tabs > button:disabled {
+  cursor: default;
+}
+.body-preview-controls svg { font-size: 14px; }
+.body-preview-status { color: var(--blue); font-size: var(--text-small); font-weight: 400; }
 .body-view-tabs::before {
   content: '';
   position: absolute;
@@ -90,20 +133,28 @@
 }
 .body-view-tabs button {
   width: 44px;
-  padding: 5px 0;
+  height: 26px;
+  padding: 0;
   border: 0;
   border-radius: 5px;
   color: var(--muted);
   background: transparent;
-  font-size: 10px;
+  font-size: var(--text-control);
 }
 .body-view-tabs button[aria-pressed='true'] {
   color: var(--blue);
 }
 .body-editor-box {
   position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
   min-width: 0;
   height: 520px;
+}
+.body-editor-box > :not(.body-bottom-controls) {
+  grid-row: 1;
+  min-height: 0;
+  min-width: 0;
 }
 .body-editor-none {
   height: auto;
@@ -114,12 +165,15 @@
   max-height: none;
 }
 .body-editor-box > .json-tree {
-  padding-bottom: 46px;
+  padding-bottom: 12px;
 }
 .body-editor-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.body-editor-actions button:disabled {
+  cursor: not-allowed;
 }
 .body-editor-actions button[aria-pressed='true'] {
   color: var(--blue);

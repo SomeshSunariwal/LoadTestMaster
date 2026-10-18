@@ -16,14 +16,15 @@
   min-width: 280px;
 }
 .json-node-row input,
-.json-node-row select {
+.json-node-row .select-trigger {
   padding: 6px 7px;
-  font-size: 10px;
+  font-size: var(--text-control);
 }
-.json-node-row .select-control select {
-  padding-right: 23px;
+.json-node-row .select-control .select-trigger {
+  padding: 6px 23px 6px 7px;
+  font-size: var(--text-control);
 }
-.json-node-row .select-control > svg {
+.json-node-row .select-control > .select-trigger > svg {
   right: 6px;
   width: 12px;
   height: 12px;
@@ -34,12 +35,12 @@
   font-size: 12px;
 }
 .json-index {
-  font-size: 10px;
+  font-size: var(--text-small);
   padding-left: 4px;
 }
 .json-value {
   min-width: 0;
-  font-size: 10px;
+  font-size: var(--text-small);
 }
 .json-children {
   margin-left: 10px;
@@ -47,9 +48,10 @@
   padding-left: 6px;
 }
 .json-children > .button {
-  font-size: 10px;
+  font-size: var(--text-control);
   padding: 5px;
 }
 .json-node-spacer {
   width: 22px;
 }
+

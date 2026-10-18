@@ -36,6 +36,18 @@ export const configSchema = z
     path: ['thinkMax'],
   });
 
+export const bodyGeneratorSchema = z.object({
+  id: z.string(),
+  key: z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/, 'Generator keys must start with a letter or underscore and contain only letters, numbers, or underscores.'),
+  type: z.enum(['increment', 'uuid', 'list']),
+  start: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
+  step: z.number().int().min(1).max(50),
+  values: z.array(z.string().max(100000)).max(1000),
+}).refine((g) => g.type !== 'list' || g.values.length > 0, 'Add at least one list value.');
+export const bodyGeneratorsSchema = z.array(bodyGeneratorSchema).max(100)
+  .refine((items) => new Set(items.map((g) => g.key)).size === items.length, 'Generator keys must be unique.');
+export type BodyGenerator = z.infer<typeof bodyGeneratorSchema>;
+
 export const apiSchema = z.object({
   id: z.string(),
   name: z.string().trim().min(1).max(200),
@@ -50,6 +62,7 @@ export const apiSchema = z.object({
   password: z.string(),
   bodyType: z.enum(['none', 'json', 'xml', 'raw', 'form', 'multipart', 'graphql']),
   body: z.string().max(1000000),
+  generators: bodyGeneratorsSchema.default([]),
   expectedStatus: z.number().int().min(0).max(599),
   responseContains: z.string(),
   followRedirects: z.boolean(),

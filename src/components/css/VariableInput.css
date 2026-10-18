@@ -45,7 +45,7 @@
 }
 .variable-field-multiline > textarea {
   font-family: Consolas, monospace;
-  font-size: 11px;
+  font-size: var(--text-code);
   line-height: 1.8;
   padding: var(--variable-padding);
 }
@@ -54,19 +54,19 @@
   color: #f4a340;
 }
 .field .variable-field {
-  --variable-font-size: 11px;
+  --variable-font-size: var(--text-control);
 }
 .pair-row .variable-field {
   --variable-padding: 10px 11px;
-  --variable-font-size: 11px;
+  --variable-font-size: var(--text-control);
 }
 .search .variable-field {
   --variable-padding: 10px 0;
-  --variable-font-size: 11px;
+  --variable-font-size: var(--text-control);
 }
 .json-node-row .variable-field {
   --variable-padding: 6px 7px;
-  --variable-font-size: 10px;
+  --variable-font-size: var(--text-control);
 }
 .variable-field-multiline > textarea {
   scrollbar-gutter: stable;
@@ -75,7 +75,7 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font-family: Consolas, monospace;
-  font-size: 11px;
+  font-size: var(--text-code);
   line-height: 1.8;
   padding-right: calc(12px + 5px);
 }
@@ -93,7 +93,7 @@
 }
 .api-modal-grid .pair-row .variable-field {
   --variable-padding: 8px;
-  --variable-font-size: 10px;
+  --variable-font-size: var(--text-control);
 }
 .variable-suggestions {
   z-index: 80;
@@ -105,7 +105,7 @@
   color: #f3f3f5;
   box-shadow: 0 8px 24px #0004;
   font:
-    11px 'Segoe UI',
+    var(--text-small) 'Segoe UI',
     sans-serif;
   overflow: hidden;
 }
@@ -116,7 +116,7 @@
 }
 .variable-suggestions-heading {
   padding: 8px 10px;
-  font-size: 10px;
+  font-size: var(--text-small);
   opacity: 0.65;
   border-bottom: 1px solid #8883;
 }

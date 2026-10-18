@@ -12,15 +12,21 @@ import {
   type ViewUpdate,
 } from '@codemirror/view';
 import { useApp } from '../hooks/useApp';
+import type { BodyGenerator } from '../shared/schema';
+import { renderGeneratedBody } from '../shared/bodyGenerators';
 
 export function JsonCodeEditor({
   value,
   onChange,
   wrap,
+  generators = [],
+  readOnly = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   wrap: boolean;
+  generators?: BodyGenerator[];
+  readOnly?: boolean;
 }) {
   const app = useApp();
   const workspace = app.state?.workspace;
@@ -28,9 +34,13 @@ export function JsonCodeEditor({
     workspace?.collections.find((c) => c.id === app.collectionId) ?? workspace?.collections[0];
   const environment = workspace?.environments.find((e) => e.id === collection?.environmentId);
   const namesKey = JSON.stringify([
-    ...new Set(environment?.variables.filter((v) => v.enabled && v.key).map((v) => v.key) ?? []),
+    ...new Set([
+      ...(environment?.variables.filter((v) => v.enabled && v.key).map((v) => v.key) ?? []),
+      ...generators.filter((g) => g.key).map((g) => `gen.${g.key}`),
+    ]),
   ]);
   const [validation, setValidation] = useState('');
+  const generatorsKey = JSON.stringify(generators);
   const extensions = useMemo(() => {
     const names: string[] = JSON.parse(namesKey);
     const matcher = new MatchDecorator({
@@ -75,6 +85,18 @@ export function JsonCodeEditor({
       json(),
       linter(
         (view) => {
+          const text = view.state.doc.toString();
+          if (!readOnly && /\{\{\s*gen\./.test(text)) {
+            try {
+              renderGeneratedBody(text, JSON.parse(generatorsKey));
+              setValidation('');
+            } catch (error) {
+              setValidation(
+                error instanceof Error ? error.message : 'Check the generator template.',
+              );
+            }
+            return [];
+          }
           const diagnostics = view.state.doc.toString().trim() ? validate(view) : [];
           const first = diagnostics[0];
           setValidation(
@@ -93,10 +115,12 @@ export function JsonCodeEditor({
       EditorView.contentAttributes.of({ 'aria-label': 'Request body', 'aria-multiline': 'true' }),
       ...(wrap ? [EditorView.lineWrapping] : []),
     ];
-  }, [namesKey, wrap]);
+  }, [namesKey, wrap, generatorsKey, readOnly]);
   return (
     <div className="json-code-editor">
       <CodeMirror
+        readOnly={readOnly}
+        editable={!readOnly}
         placeholder={'{\n  "productId": "{{productId}}",\n  "quantity": 1\n}'}
         value={value}
         onChange={onChange}

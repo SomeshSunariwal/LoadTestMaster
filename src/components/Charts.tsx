@@ -20,20 +20,35 @@ import { FiInfo } from 'react-icons/fi';
 import type { RunSnapshot } from '../shared/schema';
 import { ChartTimeRange } from './ChartTimeRange';
 import { ChartTimeContext } from './chartTimeContext';
-import { chartClockLabel, chartClockTicks, chartDateLabel, chartTooltipLabel } from '../shared/chartClock';
+import {
+  chartClockLabel,
+  chartClockTicks,
+  chartDateLabel,
+  chartTooltipLabel,
+} from '../shared/chartClock';
 
 function clockAxis(run: RunSnapshot, domain: [number, number]) {
   const { ticks, boundaries } = chartClockTicks(run, domain);
   return {
-    ticks, height: 46, interval: 'preserveStartEnd' as const,
+    ticks,
+    height: 46,
+    interval: 'preserveStartEnd' as const,
     tick: ({ x, y, payload }: XAxisTickContentProps) => {
       if (!payload) return <g />;
       const second = payload.value;
       const anchor = second === ticks[0] ? 'start' : second === ticks.at(-1) ? 'end' : 'middle';
-      return <text x={x} y={y} fill='var(--muted)' fontSize={10} textAnchor={anchor}>
-        <tspan x={x} dy={14}>{chartClockLabel(run, second)}</tspan>
-        {boundaries.includes(second) && <tspan x={x} dy={15}>{chartDateLabel(run, second)}</tspan>}
-      </text>;
+      return (
+        <text x={x} y={y} fill="var(--muted)" fontSize={12} textAnchor={anchor}>
+          <tspan x={x} dy={14}>
+            {chartClockLabel(run, second)}
+          </tspan>
+          {boundaries.includes(second) && (
+            <tspan x={x} dy={15}>
+              {chartDateLabel(run, second)}
+            </tspan>
+          )}
+        </text>
+      );
     },
   };
 }
@@ -46,10 +61,16 @@ function useChartZoom() {
     const second = Number(state.activeLabel);
     return Number.isFinite(second) ? Math.max(domain[0], Math.min(domain[1], second)) : undefined;
   };
-  const cancel = () => { drag.current = null; setSelection(null); };
+  const cancel = () => {
+    drag.current = null;
+    setSelection(null);
+  };
   return {
     handlers: {
-      onMouseDown: (state: MouseHandlerDataParam, event: { button: number; preventDefault: () => void }) => {
+      onMouseDown: (
+        state: MouseHandlerDataParam,
+        event: { button: number; preventDefault: () => void },
+      ) => {
         const second = value(state);
         if (event.button !== 0 || second === undefined) return;
         event.preventDefault();
@@ -72,17 +93,24 @@ function useChartZoom() {
       },
       onMouseLeave: cancel,
     },
-    overlay: selection && <ReferenceArea
-      x1={Math.min(...selection)} x2={Math.max(...selection)}
-      fill="var(--blue)" fillOpacity={0.2} stroke="var(--blue)" strokeOpacity={0.6}
-      ifOverflow="hidden"
-    />,
+    overlay: selection && (
+      <ReferenceArea
+        x1={Math.min(...selection)}
+        x2={Math.max(...selection)}
+        fill="var(--blue)"
+        fillOpacity={0.2}
+        stroke="var(--blue)"
+        strokeOpacity={0.6}
+        ifOverflow="hidden"
+      />
+    ),
   };
 }
 const grid = { stroke: 'var(--chart-grid)', strokeDasharray: '3 3' };
-const axis = { stroke: 'var(--muted)', fontSize: 10, tickLine: false, axisLine: false };
+const axis = { stroke: 'var(--muted)', fontSize: 12, tickLine: false, axisLine: false };
 const tooltip = {
-  formatter: (value: unknown) => typeof value === 'number' ? value.toFixed(2) : String(value ?? ''),
+  formatter: (value: unknown) =>
+    typeof value === 'number' ? value.toFixed(2) : String(value ?? ''),
   contentStyle: {
     background: 'var(--surface-raised)',
     border: '1px solid var(--border)',
@@ -105,29 +133,29 @@ export const RequestsChart = memo(function RequestsChart({ run }: { run: RunSnap
           Requests per second <FiInfo />
         </h3>
         <ChartTimeRange />
-          <div className="legend">
-            <button
-              type="button"
-              className={visible.rps ? '' : 'is-hidden'}
-              aria-pressed={visible.rps}
-              title={`${visible.rps ? 'Hide' : 'Show'} ${requestLabel}`}
-              onClick={() => setVisible((current) => ({ ...current, rps: !current.rps }))}
-            >
-              <i className="dot blue" />
-              {requestLabel}
-            </button>
-            <button
-              type="button"
-              className={visible.users ? '' : 'is-hidden'}
-              aria-pressed={visible.users}
-              title={`${visible.users ? 'Hide' : 'Show'} ${secondLabel}`}
-              onClick={() => setVisible((current) => ({ ...current, users: !current.users }))}
-            >
-              <i className="dot green" />
-              {secondLabel}
-            </button>
-          </div>
+        <div className="legend">
+          <button
+            type="button"
+            className={visible.rps ? '' : 'is-hidden'}
+            aria-pressed={visible.rps}
+            title={`${visible.rps ? 'Hide' : 'Show'} ${requestLabel}`}
+            onClick={() => setVisible((current) => ({ ...current, rps: !current.rps }))}
+          >
+            <i className="dot blue" />
+            {requestLabel}
+          </button>
+          <button
+            type="button"
+            className={visible.users ? '' : 'is-hidden'}
+            aria-pressed={visible.users}
+            title={`${visible.users ? 'Hide' : 'Show'} ${secondLabel}`}
+            onClick={() => setVisible((current) => ({ ...current, users: !current.users }))}
+          >
+            <i className="dot green" />
+            {secondLabel}
+          </button>
         </div>
+      </div>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           accessibilityLayer={false}
@@ -145,7 +173,15 @@ export const RequestsChart = memo(function RequestsChart({ run }: { run: RunSnap
           </defs>
           <CartesianGrid {...grid} />
           {zoom.overlay}
-          <XAxis dataKey="second" type="number" domain={domain} allowDataOverflow {...axis} {...clockAxis(run, domain)} minTickGap={55} />
+          <XAxis
+            dataKey="second"
+            type="number"
+            domain={domain}
+            allowDataOverflow
+            {...axis}
+            {...clockAxis(run, domain)}
+            minTickGap={55}
+          />
           <YAxis hide={tps ? !visible.rps && !visible.users : !visible.rps} {...axis} />
           {!tps && (
             <YAxis hide={!visible.users} yAxisId="users" orientation="right" width={16} {...axis} />
@@ -195,22 +231,22 @@ export const ResponseChart = memo(function ResponseChart({ run }: { run: RunSnap
           Response time <span className="muted">(ms)</span> <FiInfo />
         </h3>
         <ChartTimeRange />
-          <div className="legend">
-            {series.map(({ key, label, color }) => (
-              <button
-                key={key}
-                type="button"
-                className={visible[key] ? '' : 'is-hidden'}
-                aria-pressed={visible[key]}
-                title={`${visible[key] ? 'Hide' : 'Show'} ${label}`}
-                onClick={() => setVisible((current) => ({ ...current, [key]: !current[key] }))}
-              >
-                <i className="legend-swatch" style={{ backgroundColor: color }} />
-                {label}
-              </button>
-            ))}
-          </div>
+        <div className="legend">
+          {series.map(({ key, label, color }) => (
+            <button
+              key={key}
+              type="button"
+              className={visible[key] ? '' : 'is-hidden'}
+              aria-pressed={visible[key]}
+              title={`${visible[key] ? 'Hide' : 'Show'} ${label}`}
+              onClick={() => setVisible((current) => ({ ...current, [key]: !current[key] }))}
+            >
+              <i className="legend-swatch" style={{ backgroundColor: color }} />
+              {label}
+            </button>
+          ))}
         </div>
+      </div>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
           accessibilityLayer={false}
@@ -228,7 +264,15 @@ export const ResponseChart = memo(function ResponseChart({ run }: { run: RunSnap
           </defs>
           <CartesianGrid {...grid} />
           {zoom.overlay}
-          <XAxis dataKey="second" type="number" domain={domain} allowDataOverflow {...axis} {...clockAxis(run, domain)} minTickGap={55} />
+          <XAxis
+            dataKey="second"
+            type="number"
+            domain={domain}
+            allowDataOverflow
+            {...axis}
+            {...clockAxis(run, domain)}
+            minTickGap={55}
+          />
           <YAxis hide={!Object.values(visible).some(Boolean)} {...axis} />
           <Tooltip {...tooltip} labelFormatter={(value) => chartTooltipLabel(run, Number(value))} />
           {visible.avg && (
@@ -271,23 +315,29 @@ function TelemetryChart({ run, cpu = false }: { run: RunSnapshot; cpu?: boolean 
   return (
     <section className="panel chart-panel">
       <div className="chart-title">
-        <h3 title={cpu ? 'CPU usage of the machine running the load test.' : 'Requests in this run waiting for a response.'}>
+        <h3
+          title={
+            cpu
+              ? 'CPU usage of the machine running the load test.'
+              : 'Requests in this run waiting for a response.'
+          }
+        >
           {title} <FiInfo />
         </h3>
         <ChartTimeRange />
-          <div className="legend">
-            <button
-              type="button"
-              className={visible ? '' : 'is-hidden'}
-              aria-pressed={visible}
-              title={`${visible ? 'Hide' : 'Show'} ${title}`}
-              onClick={() => setVisible((current) => !current)}
-            >
-              <i className="legend-swatch" style={{ backgroundColor: color }} />
-              {!hasData ? 'No recorded data' : cpu ? 'Load generator (%)' : 'Waiting for response'}
-            </button>
-          </div>
+        <div className="legend">
+          <button
+            type="button"
+            className={visible ? '' : 'is-hidden'}
+            aria-pressed={visible}
+            title={`${visible ? 'Hide' : 'Show'} ${title}`}
+            onClick={() => setVisible((current) => !current)}
+          >
+            <i className="legend-swatch" style={{ backgroundColor: color }} />
+            {!hasData ? 'No recorded data' : cpu ? 'Load generator (%)' : 'Waiting for response'}
+          </button>
         </div>
+      </div>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           accessibilityLayer={false}
@@ -299,7 +349,15 @@ function TelemetryChart({ run, cpu = false }: { run: RunSnapshot; cpu?: boolean 
         >
           <CartesianGrid {...grid} />
           {zoom.overlay}
-          <XAxis dataKey="second" type="number" domain={domain} allowDataOverflow {...axis} {...clockAxis(run, domain)} minTickGap={55} />
+          <XAxis
+            dataKey="second"
+            type="number"
+            domain={domain}
+            allowDataOverflow
+            {...axis}
+            {...clockAxis(run, domain)}
+            minTickGap={55}
+          />
           <YAxis
             {...axis}
             hide={!visible}
@@ -326,7 +384,11 @@ function TelemetryChart({ run, cpu = false }: { run: RunSnapshot; cpu?: boolean 
     </section>
   );
 }
-export const OutstandingRequestsChart = memo(function OutstandingRequestsChart({ run }: { run: RunSnapshot }) {
+export const OutstandingRequestsChart = memo(function OutstandingRequestsChart({
+  run,
+}: {
+  run: RunSnapshot;
+}) {
   return <TelemetryChart run={run} />;
 });
 export const CpuChart = memo(function CpuChart({ run }: { run: RunSnapshot }) {
@@ -348,7 +410,7 @@ export const Distribution = memo(function Distribution({ run }: { run: RunSnapsh
           margin={{ top: 12, right: 8, left: -18, bottom: 2 }}
         >
           <CartesianGrid {...grid} />
-          <XAxis dataKey="range" {...axis} interval={2} tick={{ fontSize: 9 }} />
+          <XAxis dataKey="range" {...axis} interval={2} />
           <YAxis {...axis} />
           <Tooltip {...tooltip} />
           <Bar
@@ -363,7 +425,3 @@ export const Distribution = memo(function Distribution({ run }: { run: RunSnapsh
     </section>
   );
 });
-
-
-
-

@@ -1,5 +1,11 @@
 @theme {
-  --font-sans: 'SF Pro Display', 'SF Pro Text', 'SF UI Display', 'Segoe UI Variable', 'Segoe UI', Arial, sans-serif;
+  --font-sans: 'Segoe UI', Arial, sans-serif;
+}
+:root {
+  --text-small: 12px;
+  --text-control: 13px;
+  --text-section: 14px;
+  --text-code: 13px;
 }
 * {
   box-sizing: border-box;
@@ -8,6 +14,8 @@ body {
   margin: 0;
   font-family: var(--font-sans);
   font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
 }
 button,
 input,
@@ -92,12 +100,12 @@ p {
 h1 {
   font-size: 28px;
   letter-spacing: -1px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.3;
 }
 h2 {
   font-size: 20px;
-  font-weight: 630;
+  font-weight: 600;
   letter-spacing: -0.5px;
 }
 h3 {
@@ -105,14 +113,14 @@ h3 {
   font-weight: 600;
 }
 h4 {
-  font-size: 12px;
+  font-size: var(--text-section);
   font-weight: 600;
 }
 p {
   line-height: 1.65;
 }
 small {
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 strong {
   font-weight: 600;

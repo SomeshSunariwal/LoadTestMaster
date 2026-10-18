@@ -6,12 +6,12 @@ table {
   width: 100%;
   border-collapse: collapse;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: var(--text-small);
 }
 th {
   text-align: left;
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--text-small);
   font-weight: 500;
   padding: 12px 10px;
   background: var(--surface-raised);

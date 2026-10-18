@@ -20,12 +20,12 @@
 }
 .chart-title h3 > svg {
   color: var(--faint);
-  font-size: 11px;
+  font-size: var(--text-section);
 }
 .legend {
   display: flex;
   gap: 13px;
-  font-size: 9px;
+  font-size: var(--text-small);
   color: var(--muted);
 }
 .legend > button {
@@ -102,7 +102,7 @@
   background: transparent;
   color: #f56b79;
   font: inherit;
-  font-size: 9px;
+  font-size: var(--text-small);
   line-height: 1.3;
   padding: 4px 0;
   cursor: pointer;
@@ -130,7 +130,7 @@
   background: transparent;
   color: var(--muted);
   font: inherit;
-  font-size: 9px;
+  font-size: var(--text-control);
   line-height: 1.3;
   padding: 4px 6px;
   cursor: pointer;

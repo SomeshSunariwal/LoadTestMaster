@@ -124,7 +124,7 @@ export async function createService(directory: string) {
     },
 
     deleteRun: async ({ id }: { id: string }) => {
-      engine.remove(id);
+      await engine.remove(id);
       await storage.saveHistory(
         engine.runs.filter((r) => !['running', 'paused'].includes(r.status)),
       );

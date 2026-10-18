@@ -7,13 +7,13 @@
 }
 .config-section h4 {
   margin-bottom: 15px;
-  font-size: 11px;
+  font-size: var(--text-section);
 }
 .config-section .field input {
   padding: 8px 9px;
 }
 .config-section .field > span {
-  font-size: 9px;
+  font-size: var(--text-small);
 }
 .config-section .form-grid {
   gap: 13px 11px;
@@ -55,7 +55,7 @@
   border-radius: 4px;
   background: transparent;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-control);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,7 +84,7 @@
   align-items: center;
   justify-content: space-between;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-small);
   cursor: pointer;
 }
 .load-advanced > summary::-webkit-details-marker {

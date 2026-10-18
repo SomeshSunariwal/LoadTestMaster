@@ -49,7 +49,10 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="workspace-label">
-          WORKSPACE <span>LOCAL</span>
+          WORKSPACE{' '}
+          <span>
+            <span>LOCAL</span>
+          </span>
         </div>
         <nav aria-label="Main navigation">
           {navigation.map((n) => (

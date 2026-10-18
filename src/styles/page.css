@@ -6,7 +6,7 @@
   margin-bottom: 15px;
 }
 .eyebrow {
-  font-size: 8px;
+  font-size: var(--text-small);
   font-weight: 600;
   letter-spacing: 1.8px;
   color: var(--faint);
@@ -39,10 +39,10 @@
     font-size: 24px;
   }
   .page-heading p {
-    font-size: 11px;
+    font-size: var(--text-small);
   }
   .page-heading > .button {
-    font-size: 10px;
+    font-size: var(--text-control);
     padding: 8px 11px;
   }
 }

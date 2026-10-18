@@ -89,7 +89,7 @@ function JsonNode({
         <Select
           aria-label={`Type ${label}`}
           value={type}
-          onChange={(e) => onChange(emptyJsonValue(e.target.value))}
+          onValueChange={(value) => onChange(emptyJsonValue(value))}
         >
           {['object', 'array', 'string', 'number', 'boolean', 'null'].map((t) => (
             <option key={t} value={t}>
@@ -112,7 +112,7 @@ function JsonNode({
             <Select
               aria-label={`Value ${label}`}
               value={String(value)}
-              onChange={(e) => onChange(e.target.value === 'true')}
+              onValueChange={(value) => onChange(value === 'true')}
             >
               <option value="true">true</option>
               <option value="false">false</option>
@@ -127,7 +127,7 @@ function JsonNode({
         </div>
         {onRemove ? (
           <IconButton label={`Delete ${label}`} onClick={onRemove}>
-            <FiTrash2 />
+            <FiTrash2 className="delete-icon" />
           </IconButton>
         ) : (
           <span />

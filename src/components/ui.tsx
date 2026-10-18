@@ -1,11 +1,6 @@
 import './css/ui.css';
-import type {
-  ButtonHTMLAttributes,
-  InputHTMLAttributes,
-  SelectHTMLAttributes,
-  ReactNode,
-} from 'react';
-import { useId, useState } from 'react';
+import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
+import { Children, isValidElement, useId, useRef, useState } from 'react';
 import { FiCheck, FiX, FiInfo, FiChevronDown } from 'react-icons/fi';
 import { GoQuestion } from 'react-icons/go';
 import * as Dialog from '@radix-ui/react-dialog';
@@ -50,7 +45,7 @@ export function Field({
   return (
     <label className="field">
       <span className="field-label-row">
-        <span>{label}</span>
+        <span>{label.endsWith('*') ? <>{label.replace(/\s*\*$/, '')} <span className="required-marker" aria-hidden="true">*</span></> : label}</span>
         {tooltip && <Tooltip text={tooltip} />}
       </span>
       {children}
@@ -58,11 +53,155 @@ export function Field({
     </label>
   );
 }
-export function Select({ children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+export function Select({
+  children,
+  value,
+  onValueChange,
+  className = '',
+  ...props
+}: Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'value' | 'onChange'> & {
+  value: string | number;
+  onValueChange: (value: string) => void;
+}) {
+  const { state } = useApp();
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const listId = useId();
+  const buttons = useRef<(HTMLButtonElement | null)[]>([]);
+  const search = useRef({ text: '', at: 0 });
+  const options = Children.toArray(children).flatMap((child) => {
+    if (
+      !isValidElement<{ value?: string | number; children: ReactNode; disabled?: boolean }>(child)
+    )
+      return [];
+    const label = Children.toArray(child.props.children).join('');
+    return [{ value: String(child.props.value ?? label), label, disabled: !!child.props.disabled }];
+  });
+  const selected = options.findIndex((option) => option.value === String(value));
+  const firstEnabled = Math.max(
+    0,
+    options.findIndex((option) => !option.disabled),
+  );
+  const focus = (index: number) => {
+    setActive(index);
+    buttons.current[index]?.focus();
+  };
   return (
     <span className="select-control">
-      <select {...props}>{children}</select>
-      <FiChevronDown aria-hidden="true" />
+      <Popover.Root
+        open={open}
+        onOpenChange={(next) => {
+          if (next)
+            setActive(selected >= 0 && !options[selected]?.disabled ? selected : firstEnabled);
+          setOpen(next);
+        }}
+      >
+        <Popover.Trigger asChild>
+          <button
+            {...props}
+            type="button"
+            className={`select-trigger ${className}`}
+            role="combobox"
+            aria-haspopup="listbox"
+            aria-expanded={open}
+            aria-controls={listId}
+            onKeyDown={(event) => {
+              props.onKeyDown?.(event);
+              if (
+                !event.defaultPrevented &&
+                (event.key === 'ArrowDown' || event.key === 'ArrowUp')
+              ) {
+                event.preventDefault();
+                setActive(selected >= 0 && !options[selected]?.disabled ? selected : firstEnabled);
+                setOpen(true);
+              }
+            }}
+          >
+            <span>{options[selected]?.label ?? options[0]?.label ?? 'Select'}</span>
+            <FiChevronDown aria-hidden="true" />
+          </button>
+        </Popover.Trigger>
+        <Popover.Portal>
+          <div className="app-shell modal-theme" data-theme={state?.workspace.theme || 'dark'}>
+            <Popover.Content
+              className="select-menu"
+              align="start"
+              sideOffset={5}
+              collisionPadding={10}
+              id={listId}
+              role="listbox"
+              aria-label={props['aria-label'] ?? 'Options'}
+              onOpenAutoFocus={(event) => {
+                event.preventDefault();
+                buttons.current[active]?.focus();
+              }}
+              onKeyDown={(event) => {
+                const enabled = options
+                  .map((option, index) => (option.disabled ? -1 : index))
+                  .filter((index) => index >= 0);
+                if (!enabled.length) return;
+                const position = enabled.indexOf(active);
+                if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+                  event.preventDefault();
+                  focus(
+                    event.key === 'Home'
+                      ? enabled[0]!
+                      : event.key === 'End'
+                        ? enabled.at(-1)!
+                        : enabled[
+                            (position + (event.key === 'ArrowDown' ? 1 : -1) + enabled.length) %
+                              enabled.length
+                          ]!,
+                  );
+                } else if (event.key === 'Tab') setOpen(false);
+                else if (
+                  event.key.length === 1 &&
+                  event.key !== ' ' &&
+                  !event.ctrlKey &&
+                  !event.metaKey
+                ) {
+                  event.preventDefault();
+                  const now = Date.now();
+                  search.current = {
+                    text:
+                      now - search.current.at < 700
+                        ? search.current.text + event.key.toLowerCase()
+                        : event.key.toLowerCase(),
+                    at: now,
+                  };
+                  const match = enabled.find((index) =>
+                    options[index]!.label.toLowerCase().startsWith(search.current.text),
+                  );
+                  if (match !== undefined) focus(match);
+                }
+              }}
+            >
+              {options.map((option, index) => (
+                <button
+                  key={`${option.value}-${index}`}
+                  type="button"
+                  role="option"
+                  aria-selected={index === selected}
+                  data-active={index === active}
+                  disabled={option.disabled}
+                  ref={(element) => {
+                    buttons.current[index] = element;
+                  }}
+                  tabIndex={index === active ? 0 : -1}
+                  onFocus={() => setActive(index)}
+                  onClick={() => {
+                    onValueChange(option.value);
+                    setOpen(false);
+                  }}
+                >
+                  <span>{option.label}</span>
+                  {index === selected && <FiCheck aria-hidden="true" />}
+                </button>
+              ))}
+            </Popover.Content>
+          </div>
+        </Popover.Portal>
+      </Popover.Root>
     </span>
   );
 }
@@ -142,6 +281,7 @@ export function NumberField({
   min = 0,
   max = 1000000,
   step = 1,
+  invalid = false,
 }: {
   label: string;
   value: number;
@@ -151,11 +291,13 @@ export function NumberField({
   min?: number;
   max?: number;
   step?: number;
+  invalid?: boolean;
 }) {
   return (
     <Field label={label} hint={hint} tooltip={tooltip}>
       <input
         type="number"
+        aria-invalid={invalid}
         min={min}
         max={max}
         step={step}
@@ -294,7 +436,11 @@ export function Toast({
   onClose: () => void;
 }) {
   return (
-    <div key={message} role={error ? 'alert' : 'status'} className={`toast ${error ? 'error' : ''}`}>
+    <div
+      key={message}
+      role={error ? 'alert' : 'status'}
+      className={`toast ${error ? 'error' : ''}`}
+    >
       {error ? <FiInfo /> : <FiCheck />}
       <span>{message}</span>
       <IconButton label="Dismiss notification" onClick={onClose}>

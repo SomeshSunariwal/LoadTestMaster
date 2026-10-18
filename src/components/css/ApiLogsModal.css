@@ -13,7 +13,7 @@
   justify-content: flex-end;
   gap: 12px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-small);
   margin-bottom: 10px;
 }
 .api-logs-status > span:first-child {
@@ -44,14 +44,14 @@
 .api-log-pair summary {
   cursor: pointer;
   padding: 4px 0;
-  font-size: 11px;
+  font-size: var(--text-small);
   overflow-wrap: anywhere;
 }
 .api-log-pair pre {
   margin: 4px 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 11px;
+  font-size: var(--text-code);
   line-height: 1.6;
   background: #000;
   color: #fff;
@@ -65,7 +65,7 @@
   color: #fff;
 }
 .api-logs-note {
-  font-size: 10px;
+  font-size: var(--text-small);
   color: var(--muted);
   padding-top: 10px;
   line-height: 1.6;

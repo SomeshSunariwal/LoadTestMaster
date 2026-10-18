@@ -115,7 +115,7 @@ export function Environments() {
                   </IconButton>
                   {
                     <IconButton label="Delete environment" onClick={() => setConfirmDelete(true)}>
-                      <FiTrash2 />
+                      <FiTrash2 className="delete-icon" />
                     </IconButton>
                   }
                   <Button

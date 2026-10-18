@@ -15,7 +15,7 @@ Organize endpoints into collections, reuse environment variables, configure traf
 | Charts and layout      | Recharts, React Grid Layout, React Resizable Panels | Live charts, movable dashboard widgets, and resizable panels                   |
 | Request editor         | CodeMirror 6, React CodeMirror                      | JSON editing, validation, and variable completion                              |
 | Backend                | Bun, TypeScript, Fetch API                          | Load generation, metrics, and a local HTTP service for browser development     |
-| Validation and storage | Zod, local JSON and text files                      | Workspace validation, saved configuration, history, and request logs           |
+| Validation and storage | Zod, local JSON and gzip-compressed text logs        | Workspace validation, saved configuration, history, and request logs           |
 | Quality tools          | Bun Test, TypeScript, Prettier                      | Automated tests, type checking, and formatting                                 |
 
 Exact dependency versions and available commands are defined in [package.json](./package.json).

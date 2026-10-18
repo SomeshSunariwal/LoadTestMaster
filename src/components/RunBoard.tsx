@@ -28,7 +28,13 @@ import { Button, IconButton, Method } from './ui';
 import { ApiLogsModal } from './ApiLogsModal';
 import { ChartTimeContext } from './chartTimeContext';
 import { chartWindow, type ChartRange } from '../shared/chartHistory';
-import { CpuChart, Distribution, OutstandingRequestsChart, RequestsChart, ResponseChart } from './Charts';
+import {
+  CpuChart,
+  Distribution,
+  OutstandingRequestsChart,
+  RequestsChart,
+  ResponseChart,
+} from './Charts';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
@@ -52,7 +58,10 @@ export function RunBoard({ run }: { run: RunSnapshot }) {
   const chartTime = useMemo(
     () => ({
       range,
-      onChange: (next: ChartRange) => { setRange(next); setZoom(null); },
+      onChange: (next: ChartRange) => {
+        setRange(next);
+        setZoom(null);
+      },
       domain: zoom ?? window.domain,
       zoomed: zoom !== null,
       onZoom: setZoom,
@@ -167,150 +176,154 @@ export function RunBoard({ run }: { run: RunSnapshot }) {
   };
   return (
     <ChartTimeContext.Provider value={chartTime}>
-    <section className="run-board" aria-label="Adjustable dashboard">
-      <div className="board-toolbar">
-        <span>
-          <FiGrid />
-          Drag a card’s move handle. Resize graphs and the request breakdown from their corner.
-        </span>
-        <Button variant="ghost" onClick={() => savePreferences({})}>
-          <FiRotateCcw />
-          Reset layout
-        </Button>
-      </div>
-      <div ref={containerRef} className="board-grid-container">
-        {mounted && (
-          <GridLayout
-            width={width}
-            layout={layout}
-            gridConfig={{ cols, rowHeight: 28, margin: [16, 16], containerPadding: [0, 0] }}
-            dragConfig={{ enabled: true, handle: '.widget-move-handle' }}
-            resizeConfig={{ enabled: true, handles: ['se'] }}
-            onDragStop={save}
-            onResizeStop={save}
-          >
-            {widgetIds.map((id) => {
-              const metric = metrics.find((m) => m.id === id);
-              return (
-                <div
-                  key={id}
-                  className={`board-widget ${metric ? 'metric-widget' : 'report-widget'}`}
-                  data-widget-id={id}
-                  data-resizable={layout.find((item) => item.i === id)?.isResizable}
-                >
-                  <button
-                    className="widget-move-handle"
-                    aria-label={`Move ${titles[id]}`}
-                    title={`Drag to move ${titles[id]}. Arrow keys swap with the previous or next card.`}
-                    onKeyDown={(event) => {
-                      if (['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown'].includes(event.key)) {
-                        event.preventDefault();
-                        moveWithKeyboard(
-                          id,
-                          ['ArrowLeft', 'ArrowUp'].includes(event.key) ? 'previous' : 'next',
-                        );
-                      }
-                    }}
+      <section className="run-board" aria-label="Adjustable dashboard">
+        <div className="board-toolbar">
+          <span>
+            <FiGrid />
+            Drag a card’s move handle. Resize graphs and the request breakdown from their corner.
+          </span>
+          <Button variant="ghost" onClick={() => savePreferences({})}>
+            <FiRotateCcw />
+            Reset layout
+          </Button>
+        </div>
+        <div ref={containerRef} className="board-grid-container">
+          {mounted && (
+            <GridLayout
+              width={width}
+              layout={layout}
+              gridConfig={{ cols, rowHeight: 28, margin: [16, 16], containerPadding: [0, 0] }}
+              dragConfig={{ enabled: true, handle: '.widget-move-handle' }}
+              resizeConfig={{ enabled: true, handles: ['se'] }}
+              onDragStop={save}
+              onResizeStop={save}
+            >
+              {widgetIds.map((id) => {
+                const metric = metrics.find((m) => m.id === id);
+                return (
+                  <div
+                    key={id}
+                    className={`board-widget ${metric ? 'metric-widget' : 'report-widget'}`}
+                    data-widget-id={id}
+                    data-resizable={layout.find((item) => item.i === id)?.isResizable}
                   >
-                    <FiMove />
-                  </button>
-                  {metric ? (
-                    <div className="panel stat-card">
-                      <span className={`stat-icon ${metric.tone}`}>{metric.icon}</span>
-                      <div>
-                        <span className="stat-label">{metric.label}</span>
-                        <strong>
-                          {metric.value}
-                          <small>{metric.unit}</small>
-                        </strong>
-                        <p>{metric.detail}</p>
+                    <button
+                      className="widget-move-handle"
+                      aria-label={`Move ${titles[id]}`}
+                      title={`Drag to move ${titles[id]}. Arrow keys swap with the previous or next card.`}
+                      onKeyDown={(event) => {
+                        if (
+                          ['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown'].includes(event.key)
+                        ) {
+                          event.preventDefault();
+                          moveWithKeyboard(
+                            id,
+                            ['ArrowLeft', 'ArrowUp'].includes(event.key) ? 'previous' : 'next',
+                          );
+                        }
+                      }}
+                    >
+                      <FiMove />
+                    </button>
+                    {metric ? (
+                      <div className="panel stat-card">
+                        <span className={`stat-icon ${metric.tone}`}>{metric.icon}</span>
+                        <div>
+                          <span className="stat-label">{metric.label}</span>
+                          <strong>
+                            {metric.value}
+                            <small>{metric.unit}</small>
+                          </strong>
+                          <p>{metric.detail}</p>
+                        </div>
                       </div>
-                    </div>
-                  ) : id === 'requests-chart' ? (
-                    <RequestsChart run={window.run} />
-                  ) : id === 'response-chart' ? (
-                    <ResponseChart run={window.run} />
-                  ) : id === 'outstanding-chart' ? (
-                    <OutstandingRequestsChart run={window.run} />
-                  ) : id === 'cpu-chart' ? (
-                    <CpuChart run={window.run} />
-                  ) : id === 'distribution' ? (
-                    <Distribution run={graphRun} />
-                  ) : (
-                    <section className="panel breakdown">
-                      <div className="chart-title">
-                        <h3>
-                          Request breakdown <FiCheckCircle />
-                        </h3>
-                        <span className="muted helper">All requests · {run.endpoints.length} endpoints</span>
-                      </div>
-                      <div className="table-scroll">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>Method</th>
-                              <th>Endpoint</th>
-                              <th>Requests</th>
-                              <th>Success</th>
-                              <th>Avg (ms)</th>
-                              <th>P95</th>
-                              <th>Errors</th>
-                              <th>Logs</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {run.endpoints.map((e) => (
-                              <tr key={e.id}>
-                                <td>
-                                  <Method method={e.method} />
-                                </td>
-                                <td title={e.url}>
-                                  <span className="endpoint-cell">
-                                    {e.url.replace('{{baseUrl}}', '')}
-                                  </span>
-                                </td>
-                                <td>{number(e.requests)}</td>
-                                <td className="text-green">
-                                  {e.requests
-                                    ? (100 * (1 - e.errors / e.requests)).toFixed(1)
-                                    : '0'}
-                                  %
-                                </td>
-                                <td>{number(e.avg)}</td>
-                                <td>{number(e.p95)}</td>
-                                <td className={e.errors ? 'text-red' : 'muted'}>
-                                  {number(e.errors)}
-                                </td>
-                                <td>
-                                  <IconButton
-                                    label={`View logs for ${e.name}`}
-                                    onClick={() => setLogsApiId(e.id)}
-                                  >
-                                    <FiFileText />
-                                  </IconButton>
-                                </td>
+                    ) : id === 'requests-chart' ? (
+                      <RequestsChart run={window.run} />
+                    ) : id === 'response-chart' ? (
+                      <ResponseChart run={window.run} />
+                    ) : id === 'outstanding-chart' ? (
+                      <OutstandingRequestsChart run={window.run} />
+                    ) : id === 'cpu-chart' ? (
+                      <CpuChart run={window.run} />
+                    ) : id === 'distribution' ? (
+                      <Distribution run={graphRun} />
+                    ) : (
+                      <section className="panel breakdown">
+                        <div className="chart-title">
+                          <h3>
+                            Request breakdown <FiCheckCircle />
+                          </h3>
+                          <span className="muted helper">
+                            All requests · {run.endpoints.length} endpoints
+                          </span>
+                        </div>
+                        <div className="table-scroll">
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>Method</th>
+                                <th>Endpoint</th>
+                                <th>Requests</th>
+                                <th>Success</th>
+                                <th>Avg (ms)</th>
+                                <th>P95</th>
+                                <th>Errors</th>
+                                <th>Logs</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </section>
-                  )}
-                </div>
-              );
-            })}
-          </GridLayout>
+                            </thead>
+                            <tbody>
+                              {run.endpoints.map((e) => (
+                                <tr key={e.id}>
+                                  <td>
+                                    <Method method={e.method} />
+                                  </td>
+                                  <td title={e.url}>
+                                    <span className="endpoint-cell">
+                                      {e.url.replace('{{baseUrl}}', '')}
+                                    </span>
+                                  </td>
+                                  <td>{number(e.requests)}</td>
+                                  <td className="text-green">
+                                    {e.requests
+                                      ? (100 * (1 - e.errors / e.requests)).toFixed(1)
+                                      : '0'}
+                                    %
+                                  </td>
+                                  <td>{number(e.avg)}</td>
+                                  <td>{number(e.p95)}</td>
+                                  <td className={e.errors ? 'text-red' : 'muted'}>
+                                    {number(e.errors)}
+                                  </td>
+                                  <td>
+                                    <IconButton
+                                      label={`View logs for ${e.name}`}
+                                      onClick={() => setLogsApiId(e.id)}
+                                    >
+                                      <FiFileText />
+                                    </IconButton>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </section>
+                    )}
+                  </div>
+                );
+              })}
+            </GridLayout>
+          )}
+        </div>
+        {logsEndpoint && (
+          <ApiLogsModal
+            key={`${run.id}:${logsEndpoint.id}`}
+            runId={run.id}
+            endpoint={logsEndpoint}
+            onClose={() => setLogsApiId(undefined)}
+          />
         )}
-      </div>
-      {logsEndpoint && (
-        <ApiLogsModal
-          key={`${run.id}:${logsEndpoint.id}`}
-          runId={run.id}
-          endpoint={logsEndpoint}
-          onClose={() => setLogsApiId(undefined)}
-        />
-      )}
-    </section>
+      </section>
     </ChartTimeContext.Provider>
   );
 }
